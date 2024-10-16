@@ -3,7 +3,7 @@
 Plugin Name: Donation Thermometer
 Plugin URI: https://rhewlif.xyz/thermometer
 Description: Displays customisable thermometers for tracking donations using the shortcode <code>[thermometer raised=?? target=??]</code>. Shortcodes for raised/target/percentage text values are also available for posts/pages/text widgets: <code>[therm_r]</code> / <code>[therm_t]</code> / <code>[therm_%]</code>.
-Version: 2.2.5
+Version: 2.2.6
 Author: Henry Patton
 Text Domain: donation-thermometer
 Author URI: https://rhewlif.xyz
@@ -40,7 +40,7 @@ add_action( 'wp_dashboard_setup', array('Thermometer_dashboard_widget', 'therm_w
 
 $thermDefaults = array('colour_picker1'=>'#d7191c', 'colour_picker6'=>'#eb7e80', 'therm_shadow'=>'false', 'therm_filltype'=>'uniform', 'therm_orientation'=>'portrait', 'chkbox1'=>'true', 'colour_picker2'=>'#000000', 'chkbox2'=>'true', 'colour_picker3'=>'#000000', 'chkbox3'=>'true', 'colour_picker4'=>'#000000', 'currency'=>'£','target_string'=>'500', 'raised_string'=>'250', 'thousands'=>', (comma)', 'decsep'=>'. (point)', 'decimals'=>'0', 'trailing'=>'false', 'tick_align'=>'right', 'color_ramp'=>'#d7191c; #fdae61; #abd9e9; #2c7bb6', 'targetlabels'=>'true', 'colour_picker5'=>'#8a8a8a', 'swapValues'=>'0');
 
-$thermDefaultStyle = array('thermometer_svg'=>'', 'therm_target_style'=>'font-size: 16px; font-family: sans-serif;','therm_raised_style'=>'font-size: 14px; font-family: sans-serif;', 'therm_subTarget_style'=>'font-size: 14px; font-family: sans-serif;', 'therm_percent_style'=>'font-family: sans-serif; text-anchor: middle; font-weight: bold;','therm_legend_style'=>'font-size: 12px; font-family: sans-serif;','therm_majorTick_style'=>'stroke-width: 2.5px; stroke: #000;','therm_minorTick_style'=>'stroke-width: 2.5px; stroke: #000;', 'therm_border_style'=>'stroke-width: 1.5px; stroke: #000; fill: transparent;','therm_fill_style'=>'fill: transparent;','therm_arrow_style'=>'stroke: #000; stroke-width: 0.2px; fill: #000;','therm_subArrow_style'=>'stroke: #8a8a8a; stroke-width: 0.2px; fill: #8a8a8a;','therm_raisedLevel_style'=>'stroke-width: 1px; stroke: #000;','therm_subRaisedLevel_style'=>'stroke-width: 1px; stroke: #000;','therm_subTargetLevel_style'=>'stroke-width: 2.5px; stroke: #8a8a8a;');
+$thermDefaultStyle = array('thermometer_svg'=>'', 'therm_target_style'=>'font-size: 16px; font-family: inherit; text-anchor: middle;','therm_raised_style'=>'font-size: 14px; font-family: inherit;', 'therm_subTarget_style'=>'font-size: 14px; font-family: inherit;', 'therm_percent_style'=>'font-family: inherit; text-anchor: middle; font-weight: bold;','therm_legend_style'=>'font-size: 12px; font-family: inherit;','therm_majorTick_style'=>'stroke-width: 2.5px; stroke: #000;','therm_minorTick_style'=>'stroke-width: 2.5px; stroke: #000;', 'therm_border_style'=>'stroke-width: 1.5px; stroke: #000; fill: transparent;','therm_fill_style'=>'fill: transparent;','therm_arrow_style'=>'stroke: #000; stroke-width: 0.2px; fill: #000;','therm_subArrow_style'=>'stroke: #8a8a8a; stroke-width: 0.2px; fill: #8a8a8a;','therm_raisedLevel_style'=>'stroke-width: 1px; stroke: #000;','therm_subRaisedLevel_style'=>'stroke-width: 1px; stroke: #000;','therm_subTargetLevel_style'=>'stroke-width: 2.5px; stroke: #8a8a8a;');
 
 function set_plugin_meta_dt($links, $file) {
     $plugin = plugin_basename(__FILE__);
@@ -189,6 +189,21 @@ if (!is_admin())
 // ************************************************************************************************************
 
 
+// Function to reset options to default values
+function set_default_therm_style_options() {
+    delete_option('thermometer_style');
+}
+
+function thermometer_style_handle_reset() {
+    // Check if the reset button was clicked
+    if (isset($_POST['thermometer_style_reset'])) {
+        set_default_therm_style_options(); // Call the function to reset options
+        add_settings_error('thermometer_style_messages', 'thermometer_style_message', __('CSS styling reset to default values', 'thermometer_style'), 'updated');
+    }
+}
+
+add_action('admin_init', 'thermometer_style_handle_reset');
+
 // Display the admin options page
 function options_page_fn() {
     require_once plugin_dir_path(__FILE__) . 'includes/therm_settings.php';
@@ -218,7 +233,8 @@ function options_page_fn() {
         echo '<form action="options.php" method="post">';
         settings_fields( 'thermometer_style' );
         do_settings_sections( 'thermometer_style' );
-        submit_button();
+        submit_button('Save Changes', 'primary', 'submit', false);
+        submit_button('Reset styling to default', 'secondary', 'thermometer_style_reset', false, array('style' => 'margin-left: 10px;'));
         add_filter('admin_footer_text', 'remove_footer_admin');
         echo '</form>';
     }

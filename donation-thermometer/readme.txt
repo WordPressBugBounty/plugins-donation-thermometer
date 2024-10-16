@@ -1,10 +1,10 @@
-﻿=== Donation Thermometer ===
+=== Donation Thermometer ===
 Contributors: henryp
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8NVX34E692T34
 Tags: donate, donation, thermometer, progress, tracker, fundraising, funds, gift, aid, money, charity, non-profit, counter, meter, goal, custom
 Requires at least: 4.6
-Tested up to: 6.4.2
-Stable tag: 2.2.5
+Tested up to: 6.6.2
+Stable tag: 2.2.6
 Requires PHP: 5.2
 License: GPL3
 
@@ -79,6 +79,11 @@ There are two options for filling the thermometer: with a uniform colour (the de
 4. The help page describing the various shortcode options and functionality.
 
 == Changelog ==
+
+= 2.2.6 =
+* Changed default font styling from sans-serif to inherit the theme's default font.
+* Added button on settings page to reset all styling entries to default values.
+* Various small typos and code fixes.
 
 = 2.2.5 =
 * Fixed a bug where very large target values would get cut off in the SVG with the default font-size.

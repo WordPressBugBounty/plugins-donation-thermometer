@@ -129,7 +129,6 @@ function thermhtml($thermProperties){
     $markerSize = 5;
     $legendStep = 15;
 
-    // transforms to svg depending what is shown
     if($thermProperties['orientation'] == 'landscape'){
         $transformY = 0;
     }
@@ -151,7 +150,7 @@ function thermhtml($thermProperties){
     }
 
     $targetLen = mb_strlen($tValue);
-    if (!empty($tickM) && $tickM == $rightM){	// left or right ticks
+    if ($tickM === $rightM){	// left or right ticks
         if($thermProperties['orientation'] != 'landscape'){
             $viewboxX1 = ($targetLen > 7) ? ($targetLen * -2.5) + 7 : 0;
         }
@@ -330,7 +329,7 @@ function thermhtml($thermProperties){
             echo '<text x="'.$targetAnchorPoint.'" y="'.$subTargetMargin.'" class="therm_target" fill="'.esc_html($targetColor).'" dominant-baseline="central" style="text-anchor:'.$targetAnchor.'!important">'.esc_html($tValue).'</text>';
         }
         else{
-            echo '<text x="38" y="20" class="therm_target" fill="'.esc_html($targetColor).'" dominant-baseline="baseline" text-anchor="middle">'.esc_html($tValue).'</text>';
+            echo '<text x="38" y="20" class="therm_target" fill="'.esc_html($targetColor).'" dominant-baseline="auto" text-anchor="middle">'.esc_html($tValue).'</text>';
         }
 
     }
@@ -346,7 +345,7 @@ function thermhtml($thermProperties){
     if ($thermProperties['shadow'] == 1){ // shadows only under fill
         if($thermProperties['orientation'] == 'landscape'){
             //major
-            echo '<path d="M '.$maxH.' '.$tickM.' L '.$maxH.' '.$majorTickL.' M  '.($maxH-($tickStep*1)).' '.$tickM.' L '.($maxH-($tickStep*1)).' '.$majorTickL.' M '.($maxH-($tickStep*2)).' '.$tickM.' L '.($maxH-($tickStep*2)).' '.$majorTickL.' M'.($maxH-($tickStep*3)).' '.$tickM.' L '.($maxH-($tickStep*3)).' '.$majorTickL.' M '.($maxH-($tickStep*4)).' '.$tickM.' L '.($maxH-($tickStep*4)).' '.$majorTickL.' M '.$minH.' '.$tickM.' L '.$minH.' '.$majorTickL.'" class="therm_majorTick" filter="'.$basicShadow.'"/>';
+            echo '<path d="M '.$maxH.' '.$tickM.' L '.$maxH.' '.$majorTickL.' M  '.($maxH-($tickStep)).' '.$tickM.' L '.($maxH-($tickStep)).' '.$majorTickL.' M '.($maxH-($tickStep*2)).' '.$tickM.' L '.($maxH-($tickStep*2)).' '.$majorTickL.' M'.($maxH-($tickStep*3)).' '.$tickM.' L '.($maxH-($tickStep*3)).' '.$majorTickL.' M '.($maxH-($tickStep*4)).' '.$tickM.' L '.($maxH-($tickStep*4)).' '.$majorTickL.' M '.$minH.' '.$tickM.' L '.$minH.' '.$majorTickL.'" class="therm_majorTick" filter="'.$basicShadow.'"/>';
             //minor
             echo '<path d="M '.($maxH-$tickStep*0.5).' '.$tickM.' L '.($maxH-$tickStep*0.5).' '.$minorTickL.' M '.($maxH-$tickStep*1.5).' '.$tickM.' L '.($maxH-$tickStep*1.5).' '.$minorTickL.' M '.($maxH-$tickStep*2.5).' '.$tickM.' L '.($maxH-$tickStep*2.5).' '.$minorTickL.' M '.($maxH-$tickStep*3.5).' '.$tickM.' L '.($maxH-$tickStep*3.5).' '.$minorTickL.' M '.($maxH-$tickStep*4.5).' '.$tickM.' L '.($maxH-$tickStep*4.5).' '.$minorTickL.'" class="therm_minorTick" filter="'.$basicShadow.'"/>';
         }
@@ -551,7 +550,7 @@ function thermhtml($thermProperties){
 
     if($thermProperties['orientation'] == 'landscape'){
         //major
-        echo '<path d="M '.$maxH.' '.$tickM.' L '.$maxH.' '.$majorTickL.' M  '.($maxH-($tickStep*1)).' '.$tickM.' L '.($maxH-($tickStep*1)).' '.$majorTickL.' M '.($maxH-($tickStep*2)).' '.$tickM.' L '.($maxH-($tickStep*2)).' '.$majorTickL.' M'.($maxH-($tickStep*3)).' '.$tickM.' L '.($maxH-($tickStep*3)).' '.$majorTickL.' M '.($maxH-($tickStep*4)).' '.$tickM.' L '.($maxH-($tickStep*4)).' '.$majorTickL.' M '.$minH.' '.$tickM.' L '.$minH.' '.$majorTickL.'" class="therm_majorTick"/>';
+        echo '<path d="M '.$maxH.' '.$tickM.' L '.$maxH.' '.$majorTickL.' M  '.($maxH-($tickStep)).' '.$tickM.' L '.($maxH-($tickStep)).' '.$majorTickL.' M '.($maxH-($tickStep*2)).' '.$tickM.' L '.($maxH-($tickStep*2)).' '.$majorTickL.' M'.($maxH-($tickStep*3)).' '.$tickM.' L '.($maxH-($tickStep*3)).' '.$majorTickL.' M '.($maxH-($tickStep*4)).' '.$tickM.' L '.($maxH-($tickStep*4)).' '.$majorTickL.' M '.$minH.' '.$tickM.' L '.$minH.' '.$majorTickL.'" class="therm_majorTick"/>';
         //minor
         echo '<path d="M '.($maxH-$tickStep*0.5).' '.$tickM.' L '.($maxH-$tickStep*0.5).' '.$minorTickL.' M '.($maxH-$tickStep*1.5).' '.$tickM.' L '.($maxH-$tickStep*1.5).' '.$minorTickL.' M '.($maxH-$tickStep*2.5).' '.$tickM.' L '.($maxH-$tickStep*2.5).' '.$minorTickL.' M '.($maxH-$tickStep*3.5).' '.$tickM.' L '.($maxH-$tickStep*3.5).' '.$minorTickL.' M '.($maxH-$tickStep*4.5).' '.$tickM.' L '.($maxH-$tickStep*4.5).' '.$minorTickL.'" class="therm_minorTick"/>';
     }

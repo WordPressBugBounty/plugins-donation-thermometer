@@ -13,7 +13,7 @@ function style_section_text_fn() {
 function svg_style_fn($options) {
     $value = (isset(get_option('thermometer_style')[$options['type']])) ? esc_html(get_option('thermometer_style')[$options['type']]) : $options['default'];
     echo "<div class='form-item'><label for='svgStyle'></label>";
-    echo '<textarea id="'.$options['type'].'" style="width: 400px;" name="thermometer_style['.$options['type'].']" placeholder="'.__('Class name for the entire thermometer svg','donation-thermometer').'">'.sanitize_text_field($value)."</textarea>";
+    echo '<textarea id="'.$options['type'].'" style="width: 400px;" name="thermometer_style['.$options['type'].']" placeholder="'.__('CSS styling for the entire thermometer svg','donation-thermometer').'">'.sanitize_text_field($value)."</textarea>";
     echo '<br/>'.__('Default','donation-thermometer').': <code>'.sanitize_text_field($options['default']).'</code></div>';
 }
 
@@ -173,7 +173,7 @@ function help_section_text_fn() {
 function preview_section_text_fn() {
     echo '<p>';
     $thermShort = '<code>[thermometer]</code>';
-    printf(/* translators: 1: <code>[thermometer]</code> */__('Based on the plugin settings defined on this options page, the shortcode %1$s will produce an SVG image like this:', 'donation-thermometer'), $thermShort);
+    printf(/* translators: 1: <code>[thermometer]</code> */__('Based on the plugin settings defined on this options page, the default shortcode %1$s will produce an SVG image like this:', 'donation-thermometer'), $thermShort);
     echo '</p>';
 
     echo do_shortcode('[thermometer]');
