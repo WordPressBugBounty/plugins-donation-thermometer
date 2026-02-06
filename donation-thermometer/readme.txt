@@ -1,10 +1,10 @@
 === Donation Thermometer ===
 Contributors: henryp
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8NVX34E692T34
-Tags: donate, donation, thermometer, progress, tracker, fundraising, funds, gift, aid, money, charity, non-profit, counter, meter, goal, custom
+Tags: donate, donation, thermometer, tracker, fundraising
 Requires at least: 4.6
-Tested up to: 6.6.2
-Stable tag: 2.2.6
+Tested up to: 6.8
+Stable tag: 2.2.7
 Requires PHP: 5.2
 License: GPL3
 
@@ -16,7 +16,7 @@ Displays a fully customisable thermometer for tracking donations or any other go
 Simply use the shortcode **[thermometer raised=?? target=??]** to display a classic-style tracking thermometer on any post, page or sidebar.
 
 <strong>Fully customisable</strong>
-Unlimited thermometers can be made, each fully customisable to blend seamlessly with your site's theme. Thermometers are rendered as vector-based images (SVG) that produce a visually sharp graphic. Since the plugin does not load any remote image files your page-load times will remain fast and save bandwith for users.
+Unlimited thermometers can be made, each fully customisable to blend seamlessly with your site's theme. Thermometers are rendered as vector-based images (SVG) that produce a visually sharp graphic. Since the plugin does not load any remote image files, your page-load times will remain fast and save bandwidth for users.
 
 <strong>Automatic updating of values supported</strong>
 Thermometers accept values using shortcodes from other plugins so you don't need to worry about keeping track of updates.
@@ -79,6 +79,11 @@ There are two options for filling the thermometer: with a uniform colour (the de
 4. The help page describing the various shortcode options and functionality.
 
 == Changelog ==
+
+= 2.2.7 =
+* Allowed shortcodes for the target value(s).
+* Fixed bug related to svg margins when displaying multiple targets.
+* Security fixes.
 
 = 2.2.6 =
 * Changed default font styling from sans-serif to inherit the theme's default font.

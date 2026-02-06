@@ -3,7 +3,7 @@
 Plugin Name: Donation Thermometer
 Plugin URI: https://rhewlif.xyz/thermometer
 Description: Displays customisable thermometers for tracking donations using the shortcode <code>[thermometer raised=?? target=??]</code>. Shortcodes for raised/target/percentage text values are also available for posts/pages/text widgets: <code>[therm_r]</code> / <code>[therm_t]</code> / <code>[therm_%]</code>.
-Version: 2.2.6
+Version: 2.2.7
 Author: Henry Patton
 Text Domain: donation-thermometer
 Author URI: https://rhewlif.xyz

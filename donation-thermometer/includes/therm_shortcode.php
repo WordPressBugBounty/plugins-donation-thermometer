@@ -1,6 +1,11 @@
 <?php
 /////////////////////////////// shortcode stuff...
 
+function is_hex_color($color) {
+    $color = trim($color);
+    // Regex: ^# followed by exactly 3 or 6 hex digits
+    return (bool) preg_match('/^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$/', $color);
+}
 function thermometer_graphic($atts){
     $atts = (shortcode_atts(
         array(
@@ -39,10 +44,10 @@ function thermometer_graphic($atts){
     $thermProperties = array();
     //thermometer alignment (vertical/horizontal)
     if(!empty($atts['orientation'])){
-        $thermProperties['orientation'] = $atts['orientation'];
+        $thermProperties['orientation'] = esc_attr($atts['orientation']);
     }
     else{
-        $thermProperties['orientation'] = $options['therm_orientation'];
+        $thermProperties['orientation'] = esc_attr($options['therm_orientation']);
     }
 
     //width
@@ -52,7 +57,7 @@ function thermometer_graphic($atts){
     }
 
     if (!empty($atts['width'])){
-        $thermProperties['width'] = $atts['width'];
+        $thermProperties['width'] = esc_attr($atts['width']);
         $thermProperties['height'] = '';
     }
     else{
@@ -62,11 +67,11 @@ function thermometer_graphic($atts){
 
     //height
     if (!empty($atts['height'])){
-        $thermProperties['height'] = $atts['height'];
+        $thermProperties['height'] = esc_attr($atts['height']);
         $thermProperties['width'] = '';
     }
     elseif(empty($atts['height']) && !empty($atts['width'])){
-        $thermProperties['width'] = $atts['width'];
+        $thermProperties['width'] = esc_attr($atts['width']);
         $thermProperties['height'] = '';
     }
     else{
@@ -75,18 +80,18 @@ function thermometer_graphic($atts){
     }
     //currency value to use
     if (empty($atts['currency'])){
-        $thermProperties['currency'] = $options['currency'];
+        $thermProperties['currency'] = esc_attr($options['currency']);
     }
     elseif(strtolower($atts['currency']) == 'null'){ //get user to enter null for no value
         $thermProperties['currency'] = '';
     }
     else{
-        $thermProperties['currency'] = $atts['currency']; //set currency to default or shortcode value
+        $thermProperties['currency'] = esc_attr($atts['currency']); //set currency to default or shortcode value
     }
 
     //decimal separator
     if(!empty($atts['decsep'])){
-        $thermProperties['decsep'] = $atts['decsep'];
+        $thermProperties['decsep'] = esc_attr($atts['decsep']);
     }
     else{
         $thermProperties['decsep'] = ($options['decsep'] == ', (comma)') ? ',' : '.';
@@ -95,13 +100,18 @@ function thermometer_graphic($atts){
 
     //target value
     if ($atts['target'] == '' && !empty($options['target_string'])){
-        $thermProperties['target'] = $options['target_string'];
+        $thermProperties['target'] = esc_attr($options['target_string']);
     }
     elseif($atts['target'] == 'off'){
-        $thermProperties['target'] = $options['target_string'].';'.strval($atts['target']);
+        $thermProperties['target'] = esc_attr($options['target_string']).';'.strval(esc_attr($atts['target']));
     }
     else{
-        $thermProperties['target'] = preg_replace('/[^A-Za-z0-9\-\\'.$sep.'\;]/', '',strval($atts['target']));
+        // if shortcode present
+        if (!is_numeric(str_replace(",", ".", $atts['target'])) && (strpos($atts['target'], ';') === false) && !is_numeric(str_replace(',','',$atts['target']))) {
+            $shortcode = "[".strval($atts['target'])."]";
+            $atts['target'] = do_shortcode( $shortcode);
+        }
+        $thermProperties['target'] = preg_replace('/[^A-Za-z0-9\-\\'.$sep.'\;]/', '',strval(esc_attr($atts['target'])));
     }
 
     //sub target labels
@@ -122,7 +132,7 @@ function thermometer_graphic($atts){
 
     //raised value
     if ($atts['raised'] == '' && !empty($options['raised_string'])){
-        $thermProperties['raised'] = $options['raised_string'];
+        $thermProperties['raised'] = esc_attr($options['raised_string']);
     }
     else{
         // if shortcode present
@@ -130,7 +140,7 @@ function thermometer_graphic($atts){
             $shortcode = "[".strval($atts['raised'])."]";
             $atts['raised'] = do_shortcode( $shortcode);
         }
-        $thermProperties['raised'] = preg_replace('/[^A-Za-z0-9\-\\'.$sep.'\;]/', '',strval($atts['raised']));
+        $thermProperties['raised'] = preg_replace('/[^A-Za-z0-9\-\\'.$sep.'\;]/', '',strval(esc_attr($atts['raised'])));
     }
 
     //align position
@@ -141,7 +151,7 @@ function thermometer_graphic($atts){
         $thermProperties['align'] = 'display:block; float:left;';
     }
     elseif (!empty($atts['align'])){
-        $thermProperties['align'] = 'display:block; float:'.strtolower($atts['align']).';';
+        $thermProperties['align'] = 'display:block; float:'.strtolower(esc_attr($atts['align'])).';';
     }
     else{
         $thermProperties['align'] = 'display:block; float:left;';
@@ -150,7 +160,7 @@ function thermometer_graphic($atts){
 
     //thousands separator
     if(!empty($atts['sep'])){
-        $thermProperties['sep'] = $atts['sep'];
+        $thermProperties['sep'] = esc_attr($atts['sep']);
     }
     else{
         if($options['thousands'] == ' (space)'){
@@ -160,51 +170,51 @@ function thermometer_graphic($atts){
             $thermProperties['sep'] = '';
         }
         else{
-            $thermProperties['sep'] = substr($options['thousands'],0,1);
+            $thermProperties['sep'] = substr(esc_attr($options['thousands']),0,1);
         }
     }
 
     //decimal places
     if(is_numeric($atts['decimals'])){
-        $thermProperties['decimals'] = $atts['decimals'];
+        $thermProperties['decimals'] = esc_attr($atts['decimals']);
     }
     else{
-        $thermProperties['decimals'] = $options['decimals'];
+        $thermProperties['decimals'] = esc_attr($options['decimals']);
     }
 
     // fill colour and gradient
-    if(empty($atts['fill'])){
-        $thermProperties['fill'] = $options['colour_picker1'];
+    if (!empty($atts['fill']) and is_hex_color($atts['fill'])){
+        $thermProperties['fill'] = esc_attr($atts['fill']);
     }
     else{
-        $thermProperties['fill'] = $atts['fill'];
+        $thermProperties['fill'] = esc_attr($options['colour_picker1']);
     }
 
     // create a gradient
     if(!empty($atts['filltype'])){
         if ($atts['filltype'] == 'gradient'){
-            if(empty($atts['fill2'])){
-                $thermProperties['fill2'] = $options['colour_picker6'];
+            if(!empty($atts['fill2']) and is_hex_color($atts['fill2'])){
+                $thermProperties['fill2'] = esc_attr($atts['fill2']);
             }
             else{
-                $thermProperties['fill2'] = $atts['fill2'];
+                $thermProperties['fill2'] = esc_attr($options['colour_picker6']);
             }
         }
         else{
-            $thermProperties['fill2'] = $thermProperties['fill'];
+            $thermProperties['fill2'] = esc_attr($thermProperties['fill']);
         }
     }
     else{
         if ($options['therm_filltype'] == 'gradient'){
-            if(empty($atts['fill2'])){
-                $thermProperties['fill2'] = $options['colour_picker6'];
+            if(!empty($atts['fill2']) and is_hex_color($atts['fill2'])){
+                $thermProperties['fill2'] = esc_attr($atts['fill2']);
             }
             else{
-                $thermProperties['fill2'] = $atts['fill2'];
+                $thermProperties['fill2'] = esc_attr($options['colour_picker6']);
             }
         }
         else{
-            $thermProperties['fill2'] = $thermProperties['fill'];
+            $thermProperties['fill2'] = esc_attr($thermProperties['fill']);
         }
     }
 
@@ -224,7 +234,7 @@ function thermometer_graphic($atts){
 
     //title text
     if (!empty($atts['alt'])){
-        $thermProperties['title'] = $atts['alt'];
+        $thermProperties['title'] = esc_attr($atts['alt']);
     }
     else{
         $thermProperties['title'] = '';
@@ -232,7 +242,7 @@ function thermometer_graphic($atts){
 
     //legend
     if(!empty($atts['legend'])){
-        $thermProperties['legend'] = $atts['legend'];
+        $thermProperties['legend'] = esc_attr($atts['legend']);
     }
     else{
         $thermProperties['legend'] = '';
@@ -240,18 +250,18 @@ function thermometer_graphic($atts){
 
     //tick alignment
     if(!empty($atts['ticks'])){
-        $thermProperties['ticks'] = $atts['ticks'];
+        $thermProperties['ticks'] = esc_attr($atts['ticks']);
     }
     else{
-        $thermProperties['ticks'] = $options['tick_align'];
+        $thermProperties['ticks'] = esc_attr($options['tick_align']);
     }
 
     // color ramp
     if(!empty($atts['colorramp'])){
-        $thermProperties['colorList'] = $atts['colorramp'];
+        $thermProperties['colorList'] = esc_attr($atts['colorramp']);
     }
     else{
-        $thermProperties['colorList'] = $options['color_ramp'];
+        $thermProperties['colorList'] = esc_attr($options['color_ramp']);
     }
 
     // show percentage
@@ -286,10 +296,10 @@ function thermometer_graphic($atts){
         $thermProperties['swapValues'] = ($options['swapValues'] == 1 or $options['swapValues'] == 'true') ? 1 : 0;
     }
 
-    $thermProperties['percentageColor'] = (empty($atts['percentcolor'])) ? $options['colour_picker2'] : $atts['percentcolor'];
-    $thermProperties['targetColor'] = (empty($atts['targetcolor'])) ? $options['colour_picker3'] : $atts['targetcolor'];
-    $thermProperties['raisedColor'] = (empty($atts['raisedcolor'])) ? $options['colour_picker4'] : $atts['raisedcolor'];
-    $thermProperties['subtargetColor'] = (empty($atts['subtargetcolor'])) ? $options['colour_picker5'] : $atts['subtargetcolor'];
+    $thermProperties['percentageColor'] = (empty($atts['percentcolor'])) ? esc_attr($options['colour_picker2']) : esc_attr($atts['percentcolor']);
+    $thermProperties['targetColor'] = (empty($atts['targetcolor'])) ? esc_attr($options['colour_picker3']) : esc_attr($atts['targetcolor']);
+    $thermProperties['raisedColor'] = (empty($atts['raisedcolor'])) ? esc_attr($options['colour_picker4']) : esc_attr($atts['raisedcolor']);
+    $thermProperties['subtargetColor'] = (empty($atts['subtargetcolor'])) ? esc_attr($options['colour_picker5']) : esc_attr($atts['subtargetcolor']);
     //print_r($thermProperties);
     //print_r($atts);
     // create a custom thermometer from shortcode parameters
@@ -307,7 +317,7 @@ add_shortcode( 'therm_r','therm_raised');
 function therm_raised(){
     global $thermDefaults;
     $options = wp_parse_args( get_option('thermometer_options',$thermDefaults), $thermDefaults);
-    $raisedA = explode(';',$options['raised_string']);
+    $raisedA = explode(';',esc_attr($options['raised_string']));
 
     if($options['thousands'] == ' (space)'){
         $sep = ' ';
@@ -316,10 +326,10 @@ function therm_raised(){
         $sep = '';
     }
     else{
-        $sep = substr($options['thousands'],0,1);
+        $sep = substr(esc_attr($options['thousands']),0,1);
     }
     $decsep = ($options['decsep'] == ', (comma)') ? ',' : '.';
-    $decimals = $options['decimals'];
+    $decimals = esc_attr($options['decimals']);
 
     if (end($raisedA) == 'off'){
         array_splice($raisedA,-1);
@@ -350,7 +360,7 @@ add_shortcode( 'therm_t','therm_target');
 function therm_target(){
     global $thermDefaults;
     $options = wp_parse_args( get_option('thermometer_options',$thermDefaults), $thermDefaults);
-    $target = $options['target_string'];
+    $target = esc_attr($options['target_string']);
     if($options['thousands'] == ' (space)'){
         $sep = ' ';
     }
@@ -358,10 +368,10 @@ function therm_target(){
         $sep = '';
     }
     else{
-        $sep = substr($options['thousands'],0,1);
+        $sep = substr(esc_attr($options['thousands']),0,1);
     }
     $decsep = ($options['decsep'] == ', (comma)') ? ',' : '.';
-    $decimals = $options['decimals'];
+    $decimals = esc_attr($options['decimals']);
     if ($target != ''){
         $targetA = explode(';',$target);
         if (end($targetA) == 'off'){
@@ -391,7 +401,7 @@ function therm_percent(){
     $target = therm_target();
     $raised = therm_raised();
     $options = wp_parse_args( get_option('thermometer_options',$thermDefaults), $thermDefaults);
-    $decimals = $options['decimals'];
+    $decimals = esc_attr($options['decimals']);
     $div = (float) str_replace(',', '', $raised) / (float) str_replace(',', '', $target);
     return ($target > 0) ? number_format(($div * 100),$decimals).'%' : __('unknown %','donation-thermometer');
 }
