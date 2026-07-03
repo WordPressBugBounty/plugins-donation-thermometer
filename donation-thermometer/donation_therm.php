@@ -3,13 +3,13 @@
 Plugin Name: Donation Thermometer
 Plugin URI: https://rhewlif.xyz/thermometer
 Description: Displays customisable thermometers for tracking donations using the shortcode <code>[thermometer raised=?? target=??]</code>. Shortcodes for raised/target/percentage text values are also available for posts/pages/text widgets: <code>[therm_r]</code> / <code>[therm_t]</code> / <code>[therm_%]</code>.
-Version: 2.2.7
+Version: 2.2.8
 Author: Henry Patton
 Text Domain: donation-thermometer
 Author URI: https://rhewlif.xyz
 License: GPL3
 
-Copyright 2024  Henry Patton  (email : hp@rhewlif.xyz)
+Copyright 2026  Henry Patton  (email : hp@rhewlif.xyz)
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -164,6 +164,9 @@ function therm_activation() {
 }
 */
 function therm_uninstall(){
+    if (!current_user_can('manage_options')) {
+        exit;
+    }
     delete_option('thermometer_options');
     delete_option('thermometer_style');
 }
@@ -191,6 +194,10 @@ if (!is_admin())
 
 // Function to reset options to default values
 function set_default_therm_style_options() {
+    check_admin_referer( 'thermometer_style_reset_action', 'thermometer_style_reset_nonce' );
+    if (!current_user_can('manage_options')) {
+        wp_die(__('You do not have sufficient permissions to reset the style options.'));
+    }
     delete_option('thermometer_style');
 }
 
@@ -231,6 +238,7 @@ function options_page_fn() {
     }
     elseif ( $active_tab == 'style' ) {
         echo '<form action="options.php" method="post">';
+        wp_nonce_field( 'thermometer_style_reset_action', 'thermometer_style_reset_nonce' );
         settings_fields( 'thermometer_style' );
         do_settings_sections( 'thermometer_style' );
         submit_button('Save Changes', 'primary', 'submit', false);

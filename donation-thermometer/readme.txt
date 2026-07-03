@@ -3,8 +3,8 @@ Contributors: henryp
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8NVX34E692T34
 Tags: donate, donation, thermometer, tracker, fundraising
 Requires at least: 4.6
-Tested up to: 6.8
-Stable tag: 2.2.7
+Tested up to: 7.0
+Stable tag: 2.2.8
 Requires PHP: 5.2
 License: GPL3
 
@@ -79,6 +79,9 @@ There are two options for filling the thermometer: with a uniform colour (the de
 4. The help page describing the various shortcode options and functionality.
 
 == Changelog ==
+
+= 2.2.8 =
+* Security fix.
 
 = 2.2.7 =
 * Allowed shortcodes for the target value(s).
