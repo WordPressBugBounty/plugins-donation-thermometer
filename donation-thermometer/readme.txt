@@ -4,7 +4,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: donate, donation, thermometer, tracker, fundraising
 Requires at least: 4.6
 Tested up to: 7.0
-Stable tag: 2.2.8
+Stable tag: 2.2.9
 Requires PHP: 5.2
 License: GPL3
 
@@ -79,6 +79,11 @@ There are two options for filling the thermometer: with a uniform colour (the de
 4. The help page describing the various shortcode options and functionality.
 
 == Changelog ==
+
+= 2.2.9 =
+* Some improvements to the plugin code for security, efficiencies and reduced load.
+* Moved the uninstall function out to a separate file.
+* Fixed a bug when resetting CSS styles. Also added a confirm box.
 
 = 2.2.8 =
 * Security fix.

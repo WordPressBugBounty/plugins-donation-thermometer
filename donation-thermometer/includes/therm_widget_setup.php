@@ -36,7 +36,7 @@ class Thermometer_dashboard_widget{
     }
 
     public static function get_thermometer_widget_option($option, $default=NULL ) {
-        global $thermDefaults;
+        $thermDefaults = get_donation_thermometer_defaults();
         $opts = wp_parse_args( get_option('thermometer_options'), $thermDefaults);
         //$opts = self::get_thermometer_widget_options($widget_id);
 

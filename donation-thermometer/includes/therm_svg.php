@@ -9,123 +9,110 @@ function stringLength($a,$b){
 
 function thermhtml($thermProperties){
     ob_start();
-    global $thermDefaultStyle;
+    $thermDefaultStyle = get_donation_thermometer_style_defaults();
     $optionsCSS = wp_parse_args( get_option('thermometer_style',$thermDefaultStyle), $thermDefaultStyle);
-    echo '<style>
-	.thermometer_svg{'.esc_attr($optionsCSS['thermometer_svg']).'}
-	.therm_target{'.esc_attr($optionsCSS['therm_target_style']).'}
-	.therm_raised{'.esc_attr($optionsCSS['therm_raised_style']).'}
-	.therm_percent{'.esc_attr($optionsCSS['therm_percent_style']).'}
-	.therm_subTarget{'.esc_attr($optionsCSS['therm_subTarget_style']).'}
-	.therm_legend{'.esc_attr($optionsCSS['therm_legend_style']).'}
-	.therm_majorTick{'.esc_attr($optionsCSS['therm_majorTick_style']).'}
-	.therm_minorTick{'.esc_attr($optionsCSS['therm_minorTick_style']).'}
-	.therm_border{'.esc_attr($optionsCSS['therm_border_style']).'}
-	.therm_subTargetArrow{'.esc_attr($optionsCSS['therm_subArrow_style']).'}
-    .therm_raisedLevel{'.esc_attr($optionsCSS['therm_raisedLevel_style']).'}
-	.therm_subRaisedLevel{'.esc_attr($optionsCSS['therm_subRaisedLevel_style']).'}
-	.therm_arrow{'.esc_attr($optionsCSS['therm_arrow_style']).'}
-	.therm_subTargetLevel{'.esc_attr($optionsCSS['therm_subTargetLevel_style']).'}
-	</style>';
+    echo '<style type="text/css">';
+	echo '.thermometer_svg{' . wp_strip_all_tags($optionsCSS['thermometer_svg']) . '}';
+    echo '.therm_target{' . wp_strip_all_tags($optionsCSS['therm_target_style']) . '}';
+    echo '.therm_raised{' . wp_strip_all_tags($optionsCSS['therm_raised_style']) . '}';
+    echo '.therm_percent{' . wp_strip_all_tags($optionsCSS['therm_percent_style']) . '}';
+    echo '.therm_subTarget{' . wp_strip_all_tags($optionsCSS['therm_subTarget_style']) . '}';
+    echo '.therm_legend{' . wp_strip_all_tags($optionsCSS['therm_legend_style']) . '}';
+    echo '.therm_majorTick{' . wp_strip_all_tags($optionsCSS['therm_majorTick_style']) . '}';
+    echo '.therm_minorTick{' . wp_strip_all_tags($optionsCSS['therm_minorTick_style']) . '}';
+    echo '.therm_border{' . wp_strip_all_tags($optionsCSS['therm_border_style']) . '}';
+    echo '.therm_fill{' . wp_strip_all_tags($optionsCSS['therm_fill_style']) . '}';
+    echo '.therm_subTargetArrow{' . wp_strip_all_tags($optionsCSS['therm_subArrow_style']) . '}';
+    echo '.therm_raisedLevel{' . wp_strip_all_tags($optionsCSS['therm_raisedLevel_style']) . '}';
+    echo '.therm_subRaisedLevel{' . wp_strip_all_tags($optionsCSS['therm_subRaisedLevel_style']) . '}';
+    echo '.therm_arrow{' . wp_strip_all_tags($optionsCSS['therm_arrow_style']) . '}';
+    echo '.therm_subTargetLevel{' . wp_strip_all_tags($optionsCSS['therm_subTargetLevel_style']) . '}';
+    echo '</style>';
 
-    $decsep = esc_attr($thermProperties['decsep']);
-    $sep = esc_attr($thermProperties['sep']);
-    $orientation = esc_attr($thermProperties['orientation']);
-    $width_tp = esc_attr($thermProperties['width']);
-    $height_tp = esc_attr($thermProperties['height']);
-    $trailing = esc_attr($thermProperties['trailing']);
-    $shadow = esc_attr($thermProperties['shadow']);
-    $swap = esc_attr($thermProperties['swapValues']);
+
+    $decsep      = sanitize_text_field($thermProperties['decsep']);
+    $sep         = sanitize_text_field($thermProperties['sep']);
+    $orientation = (sanitize_key($thermProperties['orientation']) === 'landscape') ? 'landscape' : 'portrait';
+    $width_tp    = sanitize_text_field($thermProperties['width']);
+    $height_tp   = sanitize_text_field($thermProperties['height']);
+    $trailing    = ($thermProperties['trailing'] === 'true') ? 'true' : 'false';
+    $shadow      = (int) $thermProperties['shadow'];
+    $swap        = (int) $thermProperties['swapValues'];
 
     // thermometer values and units
-    $raisedA = explode(';',esc_attr($thermProperties['raised']));
+    $raisedA = explode(';',sanitize_text_field($thermProperties['raised']));
     if (end($raisedA) == 'off'){
         $showRaised = 0;
         array_splice($raisedA,-1);
     }
     else{
-        $showRaised = esc_attr($thermProperties['showRaised']);
+        $showRaised = (int) $thermProperties['showRaised'];
     }
 
-    if ($decsep == ','){
-        foreach($raisedA as &$item) {
+    foreach ($raisedA as &$item) {
+        if ($decsep === ',') {
             $item = floatval(str_replace(',', '.', str_replace('.', '', strval($item))));
-        }
-    }
-    else{
-        foreach($raisedA as &$item) {
+        } else {
             $item = floatval(str_replace(',', '', strval($item)));
         }
     }
+    unset($item);
     $raisedTotal = array_sum($raisedA);
 
-    $targetA = explode(';',esc_attr($thermProperties['target']));
-    if ($decsep == ','){
-        foreach($targetA as &$item) {
+    $targetA = explode(';',sanitize_text_field($thermProperties['target']));
+    foreach ($targetA as &$item) {
+        if ($decsep === ',') {
             $item = floatval(str_replace(',', '.', str_replace('.', '', strval($item))));
-        }
-    }
-    else{
-        foreach($targetA as &$item) {
+        } else {
             $item = floatval(str_replace(',', '', strval($item)));
         }
     }
+    unset($item);
+
     if (end($targetA) == 'off'){
         $showTarget = 0;
         array_splice($targetA,-1);
     }
     else{
-        $showTarget = esc_attr($thermProperties['showTarget']);
+        $showTarget = (int) $thermProperties['showTarget'];
     }
 
-    $showSubTargets = esc_attr($thermProperties['targetlabels']);
-    $targetTotal = max(0,end($targetA));
+    $showSubTargets = (int) $thermProperties['targetlabels'];
+    $targetTotal    = max(0.01, (float) end($targetA));
 
-    $currency = esc_attr($thermProperties['currency']);
-    $decimals = esc_attr($thermProperties['decimals']);
+    $currency = sanitize_text_field($thermProperties['currency']);
+    $decimals = absint($thermProperties['decimals']);
     $raisedPercent = ($targetTotal > 0) ? number_format(($raisedTotal/$targetTotal * 100),$decimals,$decsep,$sep) : 100;
     $raisedValue = ($trailing == 'true') ? number_format($raisedTotal,$decimals,$decsep,$sep).$currency : $currency.number_format($raisedTotal,$decimals,$decsep,$sep);
     $targetValue = ($trailing == 'true') ? number_format($targetTotal,$decimals,$decsep,$sep).$currency : $currency.number_format($targetTotal,$decimals,$decsep,$sep);
     $tValue = ($swap == 1) ? $raisedValue : $targetValue;
-    end($targetA); // move pointer to end of array
-    if ($showSubTargets == 1){
-        $subTargetValue = ($trailing == 'true') ? number_format(prev($targetA),$decimals,$decsep,$sep).$currency : $currency.number_format(prev($targetA),$decimals,$decsep,$sep);
-    }
-    else{
-        $subTargetValue = 0;
+
+    if ($showSubTargets === 1 && count($targetA) > 1) {
+        $prevTarget      = prev($targetA);
+        $subTargetValue  = ($trailing === 'true') ? number_format($prevTarget, $decimals, $decsep, $sep) . $currency : $currency . number_format($prevTarget, $decimals, $decsep, $sep);
+    } else {
+        $subTargetValue  = '0';
     }
 
     // colours & legend
-    if (sizeof($raisedA) > 1 && !empty(esc_attr($thermProperties['colorList']))){
-        $colorListA = explode(';',rtrim(esc_attr($thermProperties['colorList']),';'));
-    }
-    else{
-        $colorListA = array(esc_attr($thermProperties['fill']));
+    $colorListA = (count($raisedA) > 1 && !empty($thermProperties['colorList'])) ? explode(';', rtrim(sanitize_text_field($thermProperties['colorList']), ';')) : array($thermProperties['fill']);
+    foreach($colorListA as &$color) { $color = trim(sanitize_text_field($color)); } unset($color);
+    $fill2 = sanitize_text_field($thermProperties['fill2']);
+
+    $gradID = 'ThermGrad_' . md5($colorListA[0] . '_' . $fill2);
+    if ($orientation === 'landscape') {
+        $gradient = '<linearGradient id="' . $gradID . '" x1="0" x2="1" y1="0" y2="0"><stop style="stop-color: ' . esc_attr($colorListA[0]) . '" offset="0%" /><stop style="stop-color: ' . esc_attr($fill2) . '" offset="100%" /></linearGradient>';
+    } else {
+        $gradient = '<linearGradient id="' . $gradID . '" x1="0" x2="0" y1="0" y2="1"><stop style="stop-color: ' . esc_attr($fill2) . '" offset="0%" /><stop style="stop-color: ' . esc_attr($colorListA[0]) . '" offset="100%" /></linearGradient>';
     }
 
-    if($orientation == 'landscape') {
-        $gradID = 'ThermGrad_'. esc_html(trim($colorListA[0])) . '_' . esc_attr($thermProperties['fill2']);
-        $gradient = '<linearGradient id="'.$gradID.'" x1="0" x2="1" y1="0" y2="0">
-          <stop style="stop-color: ' . esc_html(trim($colorListA[0])) . '" offset="0%" />
-          <stop style="stop-color: ' . esc_attr($thermProperties['fill2']) . '" offset="100%" />
-        </linearGradient>';
-    }
-    else{
-        $gradID = 'ThermGrad_'. esc_attr($thermProperties['fill2']) . '_' . esc_html(trim($colorListA[0]));
-        $gradient = '<linearGradient id="'.$gradID.'" x1="0" x2="0" y1="0" y2="1">
-          <stop style="stop-color: ' . esc_attr($thermProperties['fill2']) . '" offset="0%" />
-          <stop style="stop-color: ' . esc_html(trim($colorListA[0])) . '" offset="100%" />
-        </linearGradient>';
-    }
+    $legend = rtrim(sanitize_text_field($thermProperties['legend']),';'); // trim last semicolon if added
+    $legendA = array_slice(explode(';', $legend), 0, count($raisedA));
 
-    $legend = rtrim(esc_attr($thermProperties['legend']),';'); // trim last semicolon if added
-    $legendA = explode(';',$legend);
-    $legendA = array_slice($legendA,0,count($raisedA)); // shorten legend entries to match raised value count
-
-    $percentageColor = esc_attr($thermProperties['percentageColor']);
-    $targetColor = esc_attr($thermProperties['targetColor']);
-    $raisedColor = esc_attr($thermProperties['raisedColor']);
-    $subTargetColor = esc_attr($thermProperties['subtargetColor']);
+    $percentageColor = sanitize_text_field($thermProperties['percentageColor']);
+    $targetColor = sanitize_text_field($thermProperties['targetColor']);
+    $raisedColor = sanitize_text_field($thermProperties['raisedColor']);
+    $subTargetColor = sanitize_text_field($thermProperties['subtargetColor']);
     $basicShadow = ($shadow == 1) ? 'url(#f1)' : '';
 
     // basic properties of the thermometer
@@ -134,27 +121,19 @@ function thermhtml($thermProperties){
     $tickStep = 42;
     $leftM = ($orientation == 'landscape') ? 23.5 : 20; // Y : X
     $rightM = ($orientation == 'landscape') ? 59.5 : 56; // Y : X
-    $tickM = (esc_attr($thermProperties['ticks']) == 'left' || esc_attr($thermProperties['ticks']) == 'top') ? $leftM : $rightM;
+    $tickM = (sanitize_key($thermProperties['ticks']) == 'left' || sanitize_key($thermProperties['ticks']) == 'top') ? $leftM : $rightM;
     $markerSize = 5;
     $legendStep = 15;
+    $transformY  = ($orientation === 'landscape') ? 0 : (($showTarget === 1) ? 0 : 18);
+    $viewboxY    = ($showTarget === 1) ? 305 : 287;
+    $viewboxX2   = ($orientation === 'landscape') ? 90 : 76;
 
-    if($orientation == 'landscape'){
-        $transformY = 0;
-    }
-    else{
-        $transformY = ($showTarget == '1') ? 0 : 18; // show target value move down
-    }
-    $viewboxY = ($showTarget == '1') ? 305 : 287;
-    $viewboxX2 = ($orientation == 'landscape') ? 90 : 76;
-
-    if($orientation == 'landscape'){
-        if (mb_strlen($targetValue)<8){
-            $targetAnchorPoint = $maxH;
-            $targetAnchor = 'middle';
-        }
-        else{
-            $targetAnchorPoint = $viewboxY -10;
-            $targetAnchor = 'end';
+    $targetAnchorPoint = $maxH;
+    $targetAnchor      = 'middle';
+    if ($orientation === 'landscape') {
+        if (mb_strlen($targetValue) >= 8) {
+            $targetAnchorPoint = $viewboxY - 10;
+            $targetAnchor      = 'end';
         }
     }
 
@@ -227,23 +206,23 @@ function thermhtml($thermProperties){
     }
 
     // title/alt attribute
-    if (strtolower(esc_attr($thermProperties['title'])) == 'off'){
+    if (strtolower(sanitize_text_field($thermProperties['title'])) == 'off'){
         $title = '';
     }
-    elseif(!empty(esc_attr($thermProperties['title']))){
-        $title = esc_attr($thermProperties['title']);
+    elseif(!empty($thermProperties['title'])){
+        $title = sanitize_text_field($thermProperties['title']);
     }
     else{
-        $title = sprintf(/* translators: 1: the raised value 2: the target value */__('Raised %1$s towards the %2$s target.', 'donation-thermometer'),$raisedValue,$targetValue);
+        $title = sprintf(__('Raised %1$s towards the %2$s target.', 'donation-thermometer'), $raisedValue, $targetValue);
     }
 
     // size properties
-
     $aspectRatio = $viewboxX2/$viewboxY; // width/height
     $workAround = 'n';
+    
     if (!empty($width_tp)){
         if (is_numeric(substr($width_tp,-1)) or substr($width_tp, -2) == 'px'){
-            $width = preg_replace("/[^0-9]/", "", $width_tp );
+            $width = preg_replace("/[^0-9.]/", "", $width_tp );
             $height = ($orientation == 'landscape') ? $width * $aspectRatio : $width / $aspectRatio;
         }
         elseif (substr($width_tp,-1) == '%'){
@@ -254,7 +233,7 @@ function thermhtml($thermProperties){
     }
     elseif (!empty($height_tp)){
         if (is_numeric(substr($height_tp,-1)) or substr($height_tp, -2) == 'px'){
-            $height = preg_replace("/[^0-9]/", "", $height_tp );
+            $height = preg_replace("/[^0-9.]/", "", $height_tp );
             $width = ($orientation == 'landscape') ? $height/$aspectRatio : $height * $aspectRatio;
         }
         elseif (substr($height_tp,-1) == '%'){
@@ -268,36 +247,36 @@ function thermhtml($thermProperties){
      * start making the svg thermometer
      *
      */
-
+    $align_style = sanitize_text_field($thermProperties['align']);
     if ($workAround == 'yesW'){
         if($orientation == 'landscape'){
-            echo '<div style="margin-bottom: 1.5em; height: auto; width: '.esc_html($width).'; '.esc_html(esc_attr($thermProperties['align'])).'">';
-            echo '<svg xmlns="http://www.w3.org/tr/svg" version="2" viewbox="'.$transformY.' '.$viewboxX1.' '.$viewboxY.' '.$viewboxX2.'" 		alt="'.esc_html($title).'" style="width: 100%;" preserveAspectRatio="" class="thermometer_svg">';
+            echo '<div style="margin-bottom: 1.5em; height: auto; width: '.esc_attr($width).'; '. $align_style .'">';
+            echo '<svg xmlns="http://www.w3.org/tr/svg" version="2" viewbox="'.esc_attr($transformY.' '.$viewboxX1.' '.$viewboxY.' '.$viewboxX2).'" aria-label="'.esc_attr($title).'" style="width: 100%;" preserveAspectRatio="" class="thermometer_svg">';
         }
         else{
-            echo '<div style="margin-bottom: 1.5em; height: auto; width: '.esc_html($width).'; '.esc_html(esc_attr($thermProperties['align'])).'">';
-            echo '<svg xmlns="http://www.w3.org/tr/svg" version="2" viewbox="'.$viewboxX1.' '.$transformY.' '.$viewboxX2.' '.$viewboxY.'" 		alt="'.esc_html($title).'" preserveAspectRatio="xMidYMid" class="thermometer_svg">';
+            echo '<div style="margin-bottom: 1.5em; height: auto; width: '.esc_attr($width).'; '. $align_style .'">';
+            echo '<svg xmlns="http://www.w3.org/tr/svg" version="2" viewbox="'.esc_attr($viewboxX1.' '.$transformY.' '.$viewboxX2.' '.$viewboxY).'" aria-label="'.esc_attr($title).'" preserveAspectRatio="xMidYMid" class="thermometer_svg">';
         }
     }
     elseif ($workAround == 'yesH'){
 
         if($orientation == 'landscape'){
-            echo '<div style="margin-bottom: 1.5em; width: auto; height: '.esc_html($height).'; '.esc_attr($thermProperties['align']).'">';
-            echo '<svg xmlns="http://www.w3.org/tr/svg" version="2" viewbox="'.$transformY.' '.$viewboxX1.' '.$viewboxY.' '.$viewboxX2.'" 		alt="'.esc_html($title).'" style="width: 100%;" preserveAspectRatio="" class="thermometer_svg">';
+            echo '<div style="margin-bottom: 1.5em; width: auto; height: '.esc_attr($height).'; '. $align_style .'">';
+            echo '<svg xmlns="http://www.w3.org/tr/svg" version="2" viewbox="'.esc_attr($transformY.' '.$viewboxX1.' '.$viewboxY.' '.$viewboxX2).'" aria-label="'.esc_attr($title).'" style="width: 100%;" preserveAspectRatio="" class="thermometer_svg">';
         }
         else{
-            echo '<div style="display: inline-block; height: '.esc_html($height).'; position: relative; user-select: none;">';
-            echo '<canvas class="Icon-canvas" height="'.$viewboxY.'" width="'.$viewboxX2.'" style="display: block; height: 100% !important; visibility: hidden;"></canvas>';
-            echo '<svg xmlns="http://www.w3.org/tr/svg" version="2" viewbox="'.$viewboxX1.' '.$transformY.' '.$viewboxX2.' '.$viewboxY.'" 		alt="'.esc_html($title).'" preserveAspectRatio="xMidYMid" class="thermometer_svg" style="height: 100%; left: 0; position: absolute; top: 0; width: 100%; ">';
+            echo '<div style="display: inline-block; height: '.esc_attr($height).'; position: relative; user-select: none;">';
+            echo '<canvas class="Icon-canvas" height="'.esc_attr($viewboxY).'" width="'.esc_attr($viewboxX2).'" style="display: block; height: 100% !important; visibility: hidden;"></canvas>';
+            echo '<svg xmlns="http://www.w3.org/tr/svg" version="2" viewbox="'.esc_attr($viewboxX1.' '.$transformY.' '.$viewboxX2.' '.$viewboxY).'" aria-label="'.esc_attr($title).'" preserveAspectRatio="xMidYMid" class="thermometer_svg" style="height: 100%; left: 0; position: absolute; top: 0; width: 100%; ">';
         }
     }
     else{
-        echo '<div style="margin-bottom: 1.5em; height: '.esc_html($height).'px; width: '.esc_html($width).'px; '.esc_html(esc_attr($thermProperties['align'])).'">';
+        echo '<div style="margin-bottom: 1.5em; height: '.esc_attr($height).'px; width: '.esc_attr($width).'px; '. $align_style .'">';
         if($orientation == 'landscape'){
-            echo '<svg xmlns="http://www.w3.org/tr/svg" version="2" x="0" y="0" width="'.esc_html($width).'" height="'.esc_html($height).'" viewbox="'.$transformY.' '.$viewboxX1.' '.($viewboxY).' '.$viewboxX2.'" alt="'.esc_html($title).'" class="thermometer_svg" style="display: block;" preserveAspectRatio="xMidYMid">';
+            echo '<svg xmlns="http://www.w3.org/tr/svg" version="2" x="0" y="0" width="'.esc_attr($width).'" height="'.esc_attr($height).'" viewbox="'.esc_attr($transformY.' '.$viewboxX1.' '.$viewboxY.' '.$viewboxX2).'" aria-label="'.esc_attr($title).'" class="thermometer_svg" style="display: block;" preserveAspectRatio="xMidYMid">';
         }
         else{
-            echo '<svg xmlns="http://www.w3.org/tr/svg" version="2" x=0 y=0 width="'.esc_html($width).'" height="'.esc_html($height).'" viewbox="'.$viewboxX1.' '.$transformY.' '.$viewboxX2.' '.$viewboxY.'" alt="'.esc_html($title).'" preserveAspectRatio="xMidYMid" class="thermometer_svg">';
+            echo '<svg xmlns="http://www.w3.org/tr/svg" version="2" x=0 y=0 width="'.esc_attr($width).'" height="'.esc_attr($height).'" viewbox="'.esc_attr($viewboxX1.' '.$transformY.' '.$viewboxX2.' '.$viewboxY) .'" aria-label="'.esc_attr($title).'" preserveAspectRatio="xMidYMid" class="thermometer_svg">';
         }
     }
 
@@ -328,42 +307,43 @@ function thermhtml($thermProperties){
             echo '<path d="M 280 41.5 C 280 51.5 275.5 59.5 269.5 59.5 L 54.5 59.5 C 50.5 64 43.5 66.5 37.5 66.5 C 23.5 66.5 12.5 55.5 12.5 41.5 C 12.5 27.5 23.5 16.5 37.5 16.5 C 43.5 16.5 50.5 19.5 54.5 23.5 L 269.5 23.5 C 275.5 23.5 280 31.5 280 41.5" class="therm_border" filter="'.$basicShadow.'" ></path>';
         }
         else{
-            echo '<path d="M38 25.5 C 28 25.5, 20 30, '.$leftM.' '.$maxH.' L '.$leftM.' 251 C 15.5 255, 13 262, 13 268 C 13 282, 24 293, 38 293 C 52 293, 63 282, 63 268 C 63 262, 60 255, '.$rightM.' 251 L '.$rightM.' '.$maxH.' C '.$rightM.' 30, 48 25.5, 38 25.5" class="therm_border" filter="'.$basicShadow.'" ></path>';
+            echo '<path d="M38 25.5 C 28 25.5, 20 30, '.esc_attr($leftM.' '.$maxH).' L '.esc_attr($leftM).' 251 C 15.5 255, 13 262, 13 268 C 13 282, 24 293, 38 293 C 52 293, 63 282, 63 268 C 63 262, 60 255, '.$rightM.' 251 L '.$rightM.' '.$maxH.' C '.$rightM.' 30, 48 25.5, 38 25.5" class="therm_border" filter="'.$basicShadow.'" ></path>';
         }
     }
 
     // target
     if ($showTarget == 1){
         if($orientation == 'landscape'){
-            echo '<text x="'.$targetAnchorPoint.'" y="'.$subTargetMargin.'" class="therm_target" fill="'.esc_html($targetColor).'" dominant-baseline="central" style="text-anchor:'.$targetAnchor.'!important">'.esc_html($tValue).'</text>';
+            echo '<text x="'.esc_attr($targetAnchorPoint).'" y="'.esc_attr($subTargetMargin).'" class="therm_target" fill="'.esc_attr($targetColor).'" dominant-baseline="central" style="text-anchor:'.$targetAnchor.'!important">'.esc_html($tValue).'</text>';
         }
         else{
-            echo '<text x="38" y="20" class="therm_target" fill="'.esc_html($targetColor).'" dominant-baseline="auto" text-anchor="middle">'.esc_html($tValue).'</text>';
+            echo '<text x="38" y="20" class="therm_target" fill="'.esc_attr($targetColor).'" dominant-baseline="auto" text-anchor="middle">'.esc_html($tValue).'</text>';
         }
 
     }
 
     // background fill with a transparent border
+    $fill_style = !empty($optionsCSS['therm_fill_style']) ? wp_strip_all_tags($optionsCSS['therm_fill_style']) : 'fill:transparent';
     if($orientation == 'landscape'){
-        echo '<path d="M 280 41.5 C 280 51.5 275.5 59.5 269.5 59.5 L 54.5 59.5 C 50.5 64 43.5 66.5 37.5 66.5 C 23.5 66.5 12.5 55.5 12.5 41.5 C 12.5 27.5 23.5 16.5 37.5 16.5 C 43.5 16.5 50.5 19.5 54.5 23.5 L 269.5 23.5 C 275.5 23.5 280 31.5 280 41.5" style="'.$optionsCSS['therm_fill_style'].'; stroke-opacity: 0!important;"><title>'.esc_html($title).'</title></path>';
+        echo '<path d="M 280 41.5 C 280 51.5 275.5 59.5 269.5 59.5 L 54.5 59.5 C 50.5 64 43.5 66.5 37.5 66.5 C 23.5 66.5 12.5 55.5 12.5 41.5 C 12.5 27.5 23.5 16.5 37.5 16.5 C 43.5 16.5 50.5 19.5 54.5 23.5 L 269.5 23.5 C 275.5 23.5 280 31.5 280 41.5" style="'.esc_attr($fill_style).'; stroke-opacity: 0!important;"></path>';
     }
     else{
-        echo '<path d="M38 25.5 C 28 25.5, 20 30, '.$leftM.' '.$maxH.' L '.$leftM.' 251 C 15.5 255, 13 262, 13 268 C 13 282, 24 293, 38 293 C 52 293, 63 282, 63 268 C 63 262, 60 255, '.$rightM.' 251 L '.$rightM.' '.$maxH.' C '.$rightM.' 30, 48 25.5, 38 25.5" style="'.$optionsCSS['therm_fill_style'].'; stroke-opacity: 0!important;"><title>'.esc_html($title).'</title></path>';
+        echo '<path d="M38 25.5 C 28 25.5, 20 30, '.esc_attr($leftM.' '.$maxH).' L '.esc_attr($leftM).' 251 C 15.5 255, 13 262, 13 268 C 13 282, 24 293, 38 293 C 52 293, 63 282, 63 268 C 63 262, 60 255, '.esc_attr($rightM.' '.$maxH).' C '.esc_attr($rightM).' 30, 48 25.5, 38 25.5" style="'.esc_attr($fill_style).'; stroke-opacity: 0!important;"></path>';
     }
 
     if ($shadow == 1){ // shadows only under fill
         if($orientation == 'landscape'){
             //major
-            echo '<path d="M '.$maxH.' '.$tickM.' L '.$maxH.' '.$majorTickL.' M  '.($maxH-($tickStep)).' '.$tickM.' L '.($maxH-($tickStep)).' '.$majorTickL.' M '.($maxH-($tickStep*2)).' '.$tickM.' L '.($maxH-($tickStep*2)).' '.$majorTickL.' M'.($maxH-($tickStep*3)).' '.$tickM.' L '.($maxH-($tickStep*3)).' '.$majorTickL.' M '.($maxH-($tickStep*4)).' '.$tickM.' L '.($maxH-($tickStep*4)).' '.$majorTickL.' M '.$minH.' '.$tickM.' L '.$minH.' '.$majorTickL.'" class="therm_majorTick" filter="'.$basicShadow.'"/>';
+            echo '<path d="M '.esc_attr($maxH.' '.$tickM).' L '.esc_attr($maxH.' '.$majorTickL).' M  '.esc_attr(($maxH-($tickStep)).' '.$tickM).' L '.esc_attr(($maxH-($tickStep)).' '.$majorTickL).' M '.esc_attr(($maxH-($tickStep*2)).' '.$tickM).' L '.esc_attr(($maxH-($tickStep*2)).' '.$majorTickL).' M'.esc_attr(($maxH-($tickStep*3)).' '.$tickM).' L '.esc_attr(($maxH-($tickStep*3)).' '.$majorTickL).' M '.esc_attr(($maxH-($tickStep*4)).' '.$tickM).' L '.esc_attr(($maxH-($tickStep*4)).' '.$majorTickL).' M '.esc_attr($minH.' '.$tickM).' L '.esc_attr($minH.' '.$majorTickL).'" class="therm_majorTick" filter="'.esc_attr($basicShadow).'"/>';
             //minor
-            echo '<path d="M '.($maxH-$tickStep*0.5).' '.$tickM.' L '.($maxH-$tickStep*0.5).' '.$minorTickL.' M '.($maxH-$tickStep*1.5).' '.$tickM.' L '.($maxH-$tickStep*1.5).' '.$minorTickL.' M '.($maxH-$tickStep*2.5).' '.$tickM.' L '.($maxH-$tickStep*2.5).' '.$minorTickL.' M '.($maxH-$tickStep*3.5).' '.$tickM.' L '.($maxH-$tickStep*3.5).' '.$minorTickL.' M '.($maxH-$tickStep*4.5).' '.$tickM.' L '.($maxH-$tickStep*4.5).' '.$minorTickL.'" class="therm_minorTick" filter="'.$basicShadow.'"/>';
+            echo '<path d="M '.esc_attr(($maxH-$tickStep*0.5)).' '.esc_attr($tickM).' L '.esc_attr(($maxH-$tickStep*0.5)).' '.esc_attr($minorTickL).' M '.esc_attr(($maxH-$tickStep*1.5).' '.$tickM).' L '.esc_attr(($maxH-$tickStep*1.5).' '.$minorTickL).' M '.esc_attr(($maxH-$tickStep*2.5).' '.$tickM).' L '.esc_attr(($maxH-$tickStep*2.5).' '.$minorTickL).' M '.esc_attr(($maxH-$tickStep*3.5).' '.$tickM).' L '.esc_attr(($maxH-$tickStep*3.5).' '.$minorTickL).' M '.esc_attr(($maxH-$tickStep*4.5).' '.$tickM).' L '.esc_attr(($maxH-$tickStep*4.5).' '.$minorTickL).'" class="therm_minorTick" filter="'.esc_attr($basicShadow).'"/>';
         }
         else{
             //major ticks
-            echo '<path d="M '.$tickM.' '.$maxH.' L '.$majorTickL.' '.$maxH.' M '.$tickM.' '.($maxH+$tickStep).' L '.$majorTickL.' '.($maxH+$tickStep).' M'.$tickM.' '.($maxH+($tickStep*2)).' L '.$majorTickL.' '.($maxH+($tickStep*2)).' M '.$tickM.' '.($maxH+($tickStep*3)).' L '.$majorTickL.' '.($maxH+($tickStep*3)).' M '.$tickM.' '.($maxH+($tickStep*4)).' L '.$majorTickL.' '.($maxH+($tickStep*4)).' M '.$tickM.' '.$minH.' L '.$majorTickL.' '.$minH.'" class="therm_majorTick" filter="'.$basicShadow.'"/>';
+            echo '<path d="M '.esc_attr($tickM.' '.$maxH).' L '.esc_attr($majorTickL.' '.$maxH).' M '.esc_attr($tickM.' '.($maxH+$tickStep)).' L '.esc_attr($majorTickL.' '.($maxH+$tickStep)).' M'.esc_attr($tickM.' '.($maxH+($tickStep*2))).' L '.esc_attr($majorTickL.' '.($maxH+($tickStep*2))).' M '.esc_attr($tickM.' '.($maxH+($tickStep*3))).' L '.esc_attr($majorTickL.' '.($maxH+($tickStep*3))).' M '.esc_attr($tickM.' '.($maxH+($tickStep*4))).' L '.esc_attr($majorTickL.' '.($maxH+($tickStep*4))).' M '.esc_attr($tickM.' '.$minH).' L '.esc_attr($majorTickL.' '.$minH).'" class="therm_majorTick" filter="'.esc_attr($basicShadow).'"/>';
 
             //minor ticks
-            echo '<path d="M '.$tickM.' '.($maxH+$tickStep*0.5).' L '.$minorTickL.' '.($maxH+$tickStep*0.5).' M '.$tickM.' '.($maxH+$tickStep*1.5).' L '.$minorTickL.' '.($maxH+$tickStep*1.5).' M '.$tickM.' '.($maxH+$tickStep*2.5).' L '.$minorTickL.' '.($maxH+$tickStep*2.5).' M '.$tickM.' '.($maxH+$tickStep*3.5).' L '.$minorTickL.' '.($maxH+$tickStep*3.5).' M '.$tickM.' '.($maxH+$tickStep*4.5).' L '.$minorTickL.' '.($maxH+$tickStep*4.5).'" class="therm_minorTick" filter="'.$basicShadow.'"/>';
+            echo '<path d="M '.esc_attr($tickM.' '.($maxH+$tickStep*0.5)).' L '.esc_attr($minorTickL.' '.($maxH+$tickStep*0.5)).' M '.esc_attr($tickM.' '.($maxH+$tickStep*1.5)).' L '.esc_attr($minorTickL.' '.($maxH+$tickStep*1.5)).' M '.esc_attr($tickM.' '.($maxH+$tickStep*2.5)).' L '.esc_attr($minorTickL.' '.($maxH+$tickStep*2.5)).' M '.esc_attr($tickM.' '.($maxH+$tickStep*3.5)).' L '.esc_attr($minorTickL.' '.($maxH+$tickStep*3.5)).' M '.esc_attr($tickM.' '.($maxH+$tickStep*4.5)).' L '.esc_attr($minorTickL.' '.($maxH+$tickStep*4.5)).'" class="therm_minorTick" filter="'.esc_attr($basicShadow).'"/>';
         }
 
     }
@@ -386,25 +366,23 @@ function thermhtml($thermProperties){
 
     if($orientation == 'landscape'){
         if($shadow == 1 & $raisedTotal <= $targetTotal){ // extra shadow for fill
-            echo '<path d="M '.$maxLevel.' 59.5 L 54.5 59.5 C 50.5 64 43.5 66.5 37.5 66.5 C 23.5 66.5 12.5 55.5 12.5 41.5 C 12.5 27.5 23.5 16.5 37.5 16.5 C 43.5 16.5 50.5 19.5 54.5 23.5 L '.$maxLevel.' 23.5 L '.$maxLevel.' 59.5" style="stroke-width: 0;" filter="'.$basicShadow.'"></path>';
+            echo '<path d="M '.esc_attr($maxLevel).' 59.5 L 54.5 59.5 C 50.5 64 43.5 66.5 37.5 66.5 C 23.5 66.5 12.5 55.5 12.5 41.5 C 12.5 27.5 23.5 16.5 37.5 16.5 C 43.5 16.5 50.5 19.5 54.5 23.5 L '.esc_attr($maxLevel).' 23.5 L '.esc_attr($maxLevel).' 59.5" style="stroke-width: 0;" filter="'.esc_attr($basicShadow).'"></path>';
         }
         elseif($shadow == 1 & $raisedTotal > $targetTotal){ // extra shadow for fill
-            echo '<path d="M 280 41.5 C 280 51.5 275.5 59.5 269.5 59.5 L 54.5 59.5 C 50.5 64 43.5 66.5 37.5 66.5 C 23.5 66.5 12.5 55.5 12.5 41.5 C 12.5 27.5 23.5 16.5 37.5 16.5 C 43.5 16.5 50.5 19.5 54.5 23.5 L 269.5 23.5 C 275.5 23.5 280 31.5 280 41.5" style="stroke-width: 0;"  filter="'.$basicShadow.'"></path>';
+            echo '<path d="M 280 41.5 C 280 51.5 275.5 59.5 269.5 59.5 L 54.5 59.5 C 50.5 64 43.5 66.5 37.5 66.5 C 23.5 66.5 12.5 55.5 12.5 41.5 C 12.5 27.5 23.5 16.5 37.5 16.5 C 43.5 16.5 50.5 19.5 54.5 23.5 L 269.5 23.5 C 275.5 23.5 280 31.5 280 41.5" style="stroke-width: 0;"  filter="'.esc_attr($basicShadow).'"></path>';
         }
         foreach($raisedA as $r){
             if ($i == 0) {
                 $newThermLevel = ($raisedTotal > $targetTotal) ? $minH - (($minH - $maxH) * ($r/$raisedTotal)) : $minH - (($minH - $maxH) * ($r/$targetTotal));
                 if($raisedTotal > $targetTotal){
-                    #echo '<path d="M 280 41.5 C 280 51.5 275.5 59.5 269.5 59.5 L 54.5 59.5 C 50.5 64 43.5 66.5 37.5 66.5 C 23.5 66.5 12.5 55.5 12.5 41.5 C 12.5 27.5 23.5 16.5 37.5 16.5 C 43.5 16.5 50.5 19.5 54.5 23.5 L 269.5 23.5 C 275.5 23.5 280 31.5 280 41.5" style="stroke-width: 0;" fill="'.esc_html(trim($colorListA[$i])).'"/>';
-                    echo '<path d="M 280 41.5 C 280 51.5 275.5 59.5 269.5 59.5 L 54.5 59.5 C 50.5 64 43.5 66.5 37.5 66.5 C 23.5 66.5 12.5 55.5 12.5 41.5 C 12.5 27.5 23.5 16.5 37.5 16.5 C 43.5 16.5 50.5 19.5 54.5 23.5 L 269.5 23.5 C 275.5 23.5 280 31.5 280 41.5" style="stroke-width: 0;" fill="url(#'.$gradID.')"/>';
+                    echo '<path d="M 280 41.5 C 280 51.5 275.5 59.5 269.5 59.5 L 54.5 59.5 C 50.5 64 43.5 66.5 37.5 66.5 C 23.5 66.5 12.5 55.5 12.5 41.5 C 12.5 27.5 23.5 16.5 37.5 16.5 C 43.5 16.5 50.5 19.5 54.5 23.5 L 269.5 23.5 C 275.5 23.5 280 31.5 280 41.5" style="stroke-width: 0;" fill="url(#'.esc_attr($gradID).')"/>';
                 }
                 else{
-                    #echo '<path d="M '.$newThermLevel.' '.$rightM.' L 54.5 '.$rightM.' C 50.5 64 43.5 66.5 37.5 66.5 C 23.5 66.5 12.5 55.5 12.5 41.5 C 12.5 27.5 23.5 16.5 37.5 16.5 C 43.5 16.5 50.5 19.5 54.5 '.$leftM.' L '.$newThermLevel.' '.$leftM.' L '.$newThermLevel.' '.$rightM.'" style="stroke-width: 0;" fill="'.esc_html(trim($colorListA[$i])).'"/>';
-                    echo '<path d="M '.$newThermLevel.' '.$rightM.' L 54.5 '.$rightM.' C 50.5 64 43.5 66.5 37.5 66.5 C 23.5 66.5 12.5 55.5 12.5 41.5 C 12.5 27.5 23.5 16.5 37.5 16.5 C 43.5 16.5 50.5 19.5 54.5 '.$leftM.' L '.$newThermLevel.' '.$leftM.' L '.$newThermLevel.' '.$rightM.'" style="stroke-width: 0;" fill="url(#'.$gradID.')"/>';
+                    echo '<path d="M '.esc_attr($newThermLevel).' '.esc_attr($rightM).' L 54.5 '.esc_attr($rightM).' C 50.5 64 43.5 66.5 37.5 66.5 C 23.5 66.5 12.5 55.5 12.5 41.5 C 12.5 27.5 23.5 16.5 37.5 16.5 C 43.5 16.5 50.5 19.5 54.5 '.esc_attr($leftM).' L '.esc_attr($newThermLevel).' '.esc_attr($leftM).' L '.esc_attr($newThermLevel).' '.esc_attr($rightM).'" style="stroke-width: 0;" fill="url(#'.esc_attr($gradID).')"/>';
                 }
 
                 if ($i == $raisedN & $raisedTotal <= $targetTotal){
-                    echo '<path d="M '.$newThermLevel.' '.$leftM.' L '.$newThermLevel.' '.$rightM.'" class="therm_raisedLevel" />';
+                    echo '<path d="M '.esc_attr($newThermLevel).' '.esc_attr($leftM).' L '.esc_attr($newThermLevel).' '.esc_attr($rightM).'" class="therm_raisedLevel" />';
                 }
             }
             else{
@@ -412,16 +390,16 @@ function thermhtml($thermProperties){
                 $fill = ($i > count($colorListA)-1) ? 'url(#'.$gradID.')' : trim($colorListA[$i]); // if not enough colours in list -> transparent
                 $newThermLevel = ($raisedTotal > $targetTotal) ? $oldThermLevel - (($minH - $maxH) * ($r/$raisedTotal)) : $oldThermLevel - (($minH - $maxH) * ($r/$targetTotal));
                 if ($raisedTotal > $targetTotal & $i == $raisedN){
-                    echo '<path d="M '.$maxH.' '.$rightM.' L '.$oldThermLevel.' '.$rightM.' L '.$oldThermLevel.' '.$leftM.' '.$maxH.' '.$leftM.' C 275.5 23.5 280 31.5 280 41.5 C 280 51.5 275.5 59.5 269.5 59.5" fill="'.esc_html($fill).'" style="stroke-width: 0;"/>';
+                    echo '<path d="M '.esc_attr($maxH).' '.esc_attr($rightM).' L '.esc_attr($oldThermLevel).' '.esc_attr($rightM).' L '.esc_attr($oldThermLevel).' '.esc_attr($leftM).' '.esc_attr($maxH).' '.esc_attr($leftM).' C 275.5 23.5 280 31.5 280 41.5 C 280 51.5 275.5 59.5 269.5 59.5" fill="'.esc_html($fill).'" style="stroke-width: 0;"/>';
                 }
                 else{
-                    echo '<rect x="'.$oldThermLevel.'" y="'.$leftM.'" width="'.($newThermLevel-$oldThermLevel).'" height="'.($rightM-$leftM).'" fill="'.esc_html($fill).'" style="stroke-width: 0;"/>';
+                    echo '<rect x="'.esc_attr($oldThermLevel).'" y="'.esc_attr($leftM).'" width="'.esc_attr($newThermLevel-$oldThermLevel).'" height="'.esc_attr($rightM-$leftM).'" fill="'.esc_html($fill).'" style="stroke-width: 0;"/>';
                 }
 
-                echo '<path d="M '.$oldThermLevel.' '.$leftM.' L '.$oldThermLevel.' '.$rightM.'" class="therm_subRaisedLevel"/>';
+                echo '<path d="M '.esc_attr($oldThermLevel).' '.esc_attr($leftM).' L '.esc_attr($oldThermLevel).' '.esc_attr($rightM).'" class="therm_subRaisedLevel"/>';
 
                 if ($i == $raisedN & $raisedTotal <= $targetTotal){
-                    echo '<path d="M '.$newThermLevel.' '.$leftM.' L '.$newThermLevel.' '.$rightM.'" class="therm_subRaisedLevel"/>';
+                    echo '<path d="M '.esc_attr($newThermLevel).' '.esc_attr($leftM).' L '.esc_attr($newThermLevel).' '.esc_attr($rightM).'" class="therm_subRaisedLevel"/>';
                 }
             }
             $i++;
@@ -431,26 +409,24 @@ function thermhtml($thermProperties){
 
     else{ /// portrait
         if($shadow == 1 & $raisedTotal <= $targetTotal){ // extra shadow for fill
-            echo '<path d="M'.$leftM.' '.$maxLevel.' L '.$leftM.' 251 C 15.5 255, 13 262, 13 268 C 13 282, 24 293, 38 293 C 52 293, 63 282, 63 268 C 63 262, 60 255, '.$rightM.' 251 L '.$rightM.' '.$maxLevel.' L '.$leftM.' '.$maxLevel.'" style="stroke-width: 0;" filter="'.$basicShadow.'"></path>';
+            echo '<path d="M'.esc_attr($leftM.' '.$maxLevel).' L '.esc_attr($leftM).' 251 C 15.5 255, 13 262, 13 268 C 13 282, 24 293, 38 293 C 52 293, 63 282, 63 268 C 63 262, 60 255, '.esc_attr($rightM).' 251 L '.esc_attr($rightM).' '.esc_attr($maxLevel).' L '.esc_attr($leftM).' '.esc_attr($maxLevel).'" style="stroke-width: 0;" filter="'.esc_attr($basicShadow).'"></path>';
         }
         elseif($shadow == 1 & $raisedTotal > $targetTotal){ // extra shadow for fill
-            echo '<path d="M'.$leftM.' '.$maxH.' L '.$leftM.' 251 C 15.5 255, 13 262, 13 268 C 13 282, 24 293, 38 293 C 52 293, 63 282, 63 268 C 63 262, 60 255, '.$rightM.' 251 L '.$rightM.' '.$maxH.' C '.$rightM.' 30, 48 25.5, 38 25.5 C 28 25.5, 20 30, '.$leftM.' '.$maxH.'" style="stroke-width: 0;" filter="'.$basicShadow.'"/>';
+            echo '<path d="M'.esc_attr($leftM).' '.esc_attr($maxH).' L '.esc_attr($leftM).' 251 C 15.5 255, 13 262, 13 268 C 13 282, 24 293, 38 293 C 52 293, 63 282, 63 268 C 63 262, 60 255, '.esc_attr($rightM).' 251 L '.esc_attr($rightM).' '.esc_attr($maxH).' C '.esc_attr($rightM).' 30, 48 25.5, 38 25.5 C 28 25.5, 20 30, '.esc_attr($leftM).' '.esc_attr($maxH).'" style="stroke-width: 0;" filter="'.esc_attr($basicShadow).'"/>';
         }
 
         foreach($raisedA as $r){
             if ($i == 0) {
                 $newThermLevel = ($raisedTotal > $targetTotal) ? $minH - (($minH - $maxH) * ($r/$raisedTotal)) : $minH - (($minH - $maxH) * ($r/$targetTotal));
                 if($raisedTotal > $targetTotal){
-                    #echo '<path d="M'.$leftM.' '.$newThermLevel.' L '.$leftM.' 251 C 15.5 255, 13 262, 13 268 C 13 282, 24 293, 38 293 C 52 293, 63 282, 63 268 C 63 262, 60 255, '.$rightM.' 251 L '.$rightM.' '.$newThermLevel.' C '.$rightM.' 30, 48 25.5, 38 25.5 C 28 25.5, 20 30, '.$leftM.' '.$newThermLevel.'" style="stroke-width: 0;" fill="'.esc_html(trim($colorListA[$i])).'"/>';
-                    echo '<path d="M'.$leftM.' '.$newThermLevel.' L '.$leftM.' 251 C 15.5 255, 13 262, 13 268 C 13 282, 24 293, 38 293 C 52 293, 63 282, 63 268 C 63 262, 60 255, '.$rightM.' 251 L '.$rightM.' '.$newThermLevel.' C '.$rightM.' 30, 48 25.5, 38 25.5 C 28 25.5, 20 30, '.$leftM.' '.$newThermLevel.'" style="stroke-width: 0;" fill="url(#'.$gradID.')"/>';
+                    echo '<path d="M'.esc_attr($leftM).' '.esc_attr($newThermLevel).' L '.esc_attr($leftM).' 251 C 15.5 255, 13 262, 13 268 C 13 282, 24 293, 38 293 C 52 293, 63 282, 63 268 C 63 262, 60 255, '.esc_attr($rightM).' 251 L '.esc_attr($rightM).' '.esc_attr($newThermLevel).' C '.esc_attr($rightM).' 30, 48 25.5, 38 25.5 C 28 25.5, 20 30, '.esc_attr($leftM).' '.esc_attr($newThermLevel).'" style="stroke-width: 0;" fill="url(#'.esc_attr($gradID).')"/>';
                 }
                 else{
-                    #echo '<path d="M'.$leftM.' '.$newThermLevel.' L '.$leftM.' 251 C 15.5 255, 13 262, 13 268 C 13 282, 24 293, 38 293 C 52 293, 63 282, 63  268 C 63 262, 60 255, '.$rightM.' 251 L '.$rightM.' '.$newThermLevel.' L '.$leftM.' '.$newThermLevel.'" style="stroke-width: 0;" fill="'.esc_html(trim($colorListA[$i])).'"/>';
-                    echo '<path d="M'.$leftM.' '.$newThermLevel.' L '.$leftM.' 251 C 15.5 255, 13 262, 13 268 C 13 282, 24 293, 38 293 C 52 293, 63 282, 63  268 C 63 262, 60 255, '.$rightM.' 251 L '.$rightM.' '.$newThermLevel.' L '.$leftM.' '.$newThermLevel.'" style="stroke-width: 0;" fill="url(#'.$gradID.')"/>';
+                    echo '<path d="M'.esc_attr($leftM).' '.esc_attr($newThermLevel).' L '.esc_attr($leftM).' 251 C 15.5 255, 13 262, 13 268 C 13 282, 24 293, 38 293 C 52 293, 63 282, 63  268 C 63 262, 60 255, '.esc_attr($rightM).' 251 L '.esc_attr($rightM).' '.esc_attr($newThermLevel).' L '.esc_attr($leftM).' '.esc_attr($newThermLevel).'" style="stroke-width: 0;" fill="url(#'.esc_attr($gradID).')"/>';
                 }
 
                 if ($i == $raisedN & $raisedTotal <= $targetTotal){
-                    echo '<path d="M'.$leftM.' '.$newThermLevel.' L '.$rightM.' '.$newThermLevel.'" class="therm_raisedLevel" />';
+                    echo '<path d="M'.esc_attr($leftM).' '.esc_attr($newThermLevel).' L '.esc_attr($rightM).' '.esc_attr($newThermLevel).'" class="therm_raisedLevel" />';
                 }
             }
             else{
@@ -458,17 +434,17 @@ function thermhtml($thermProperties){
                 $fill = ($i > count($colorListA)-1) ? 'url(#'.$gradID.')' : trim($colorListA[$i]); // if not enough colours in list -> transparent
                 $newThermLevel = ($raisedTotal > $targetTotal) ? $oldThermLevel - (($minH - $maxH) * ($r/$raisedTotal)) : $oldThermLevel - (($minH - $maxH) * ($r/$targetTotal));
                 if ($raisedTotal > $targetTotal & $i == $raisedN){
-                    echo '<path d="M '.$leftM.' '.$newThermLevel.' L '.$leftM.' '.$oldThermLevel.' L '.$rightM.' '.$oldThermLevel.' L '.$rightM.' '.$newThermLevel.' C '.$rightM.' 30, 48 25.5, 38 25.5 C 28 25.5, 20 30, '.$leftM.' '.$newThermLevel.'" fill="'.esc_html($fill).'" style="stroke-width: 0;" />';
+                    echo '<path d="M '.esc_attr($leftM).' '.esc_attr($newThermLevel).' L '.esc_attr($leftM).' '.esc_attr($oldThermLevel).' L '.esc_attr($rightM).' '.esc_attr($oldThermLevel).' L '.esc_attr($rightM).' '.esc_attr($newThermLevel).' C '.esc_attr($rightM).' 30, 48 25.5, 38 25.5 C 28 25.5, 20 30, '.esc_attr($leftM).' '.esc_attr($newThermLevel).'" fill="'.esc_attr($fill).'" style="stroke-width: 0;" />';
                 }
                 else{
-                    echo '<rect x="'.$leftM.'" y="'.$newThermLevel.'" width="'.($rightM-$leftM).'" height="'.($oldThermLevel-$newThermLevel).'" fill="'.esc_html($fill).'" style="stroke-width: 0;"/>';
+                    echo '<rect x="'.esc_attr($leftM).'" y="'.esc_attr($newThermLevel).'" width="'.esc_attr($rightM-$leftM).'" height="'.esc_attr($oldThermLevel-$newThermLevel).'" fill="'.esc_attr($fill).'" style="stroke-width: 0;"/>';
                 }
 
 
-                echo '<path d="M '.$leftM.' '.$oldThermLevel.' L '.$rightM.' '.$oldThermLevel.'" class="therm_subRaisedLevel"/>';
+                echo '<path d="M '.esc_attr($leftM).' '.esc_attr($oldThermLevel).' L '.esc_attr($rightM).' '.esc_attr($oldThermLevel).'" class="therm_subRaisedLevel"/>';
 
                 if ($i == $raisedN & $raisedTotal <= $targetTotal){
-                    echo '<path d="M '.$leftM.' '.$newThermLevel.' L '.$rightM.' '.$newThermLevel.'" class="therm_subRaisedLevel"/>';
+                    echo '<path d="M '.esc_attr($leftM).' '.esc_attr($newThermLevel).' L '.esc_attr($rightM).' '.esc_attr($newThermLevel).'" class="therm_subRaisedLevel"/>';
                 }
             }
             $i++;
@@ -482,33 +458,33 @@ function thermhtml($thermProperties){
         $rValueLevel = ($swap == 0) ? $newThermLevel : $minH - (($minH - $maxH) * ($targetTotal/$raisedTotal));
         if($orientation == 'landscape'){
             if ( $tickM == $rightM ){
-                echo '<path d="M '.$rValueLevel.' '.$markerMargin.', '.($rValueLevel-$markerSize).' '.($markerMargin+$markerSize).', '.($rValueLevel+$markerSize).' '.($markerMargin+$markerSize).' Z" class="therm_arrow"/>';
+                echo '<path d="M '.esc_attr($rValueLevel).' '.esc_attr($markerMargin).', '.esc_attr($rValueLevel-$markerSize).' '.esc_attr($markerMargin+$markerSize).', '.esc_attr($rValueLevel+$markerSize).' '.esc_attr($markerMargin+$markerSize).' Z" class="therm_arrow"/>';
             }
             elseif ($tickM == $leftM){
-                echo '<path d="M '.$rValueLevel.' '.$markerMargin.', '.($rValueLevel+$markerSize).' '.($markerMargin-$markerSize).', '.($rValueLevel-$markerSize).' '.($markerMargin-$markerSize).' Z" class="therm_arrow" />';
+                echo '<path d="M '.esc_attr($rValueLevel).' '.esc_attr($markerMargin).', '.esc_attr($rValueLevel+$markerSize).' '.esc_attr($markerMargin-$markerSize).', '.esc_attr($rValueLevel-$markerSize).' '.esc_attr($markerMargin-$markerSize).' Z" class="therm_arrow" />';
             }
 
-            echo '<text x="'.$rValueLevel.'" y="'.($raisedMargin).'" class="therm_raised" text-anchor="middle" dominant-baseline="central" fill="'.esc_html($raisedColor).'">'.esc_html($rValue).'</text>';
+            echo '<text x="'.esc_attr($rValueLevel).'" y="'.esc_attr($raisedMargin).'" class="therm_raised" text-anchor="middle" dominant-baseline="central" fill="'.esc_attr($raisedColor).'">'.esc_html($rValue).'</text>';
             if ($swap == 1){
-                echo '<path d="M'.$rValueLevel.' '.$leftM.' L '.$rValueLevel.' '.$rightM.'" class="therm_subTargetLevel"/>';
+                echo '<path d="M'.esc_attr($rValueLevel).' '.esc_attr($leftM).' L '.esc_attr($rValueLevel).' '.esc_attr($rightM).'" class="therm_subTargetLevel"/>';
             }
         }
 
         else{
             if ( $tickM == $rightM ){
-                echo '<path d="M '.$markerMargin.' '.$rValueLevel.', '.($markerMargin+$markerSize).' '.($rValueLevel-$markerSize).', '.($markerMargin+$markerSize).' '.($rValueLevel+$markerSize).' Z" class="therm_arrow"/>';
+                echo '<path d="M '.esc_attr($markerMargin).' '.esc_attr($rValueLevel).', '.esc_attr($markerMargin+$markerSize).' '.esc_attr($rValueLevel-$markerSize).', '.esc_attr($markerMargin+$markerSize).' '.esc_attr($rValueLevel+$markerSize).' Z" class="therm_arrow"/>';
             }
             elseif ($tickM == $leftM){
-                echo '<path d="M '.$markerMargin.' '.$rValueLevel.', '.($markerMargin-$markerSize).' '.($rValueLevel+$markerSize).', '.($markerMargin-$markerSize).' '.($rValueLevel-$markerSize).' Z" class="therm_arrow" />';
+                echo '<path d="M '.esc_attr($markerMargin).' '.esc_attr($rValueLevel).', '.esc_attr($markerMargin-$markerSize).' '.esc_attr($rValueLevel+$markerSize).', '.esc_attr($markerMargin-$markerSize).' '.esc_attr($rValueLevel-$markerSize).' Z" class="therm_arrow" />';
             }
             if (esc_attr($thermProperties['ticks']) == 'right'){
-                echo '<text x="'.$raisedMargin.'" y="'.$rValueLevel.'" class="therm_raised" text-anchor="start" dominant-baseline="central" fill="'.esc_html($raisedColor).'">'.esc_html($rValue).'</text>';
+                echo '<text x="'.esc_attr($raisedMargin).'" y="'.esc_attr($rValueLevel).'" class="therm_raised" text-anchor="start" dominant-baseline="central" fill="'.esc_attr($raisedColor).'">'.esc_html($rValue).'</text>';
             }
             else{
-                echo '<text x="'.$raisedMargin.'" y="'.$rValueLevel.'" class="therm_raised" text-anchor="end" dominant-baseline="central" fill="'.esc_html($raisedColor).'">'.esc_html($rValue).'</text>';
+                echo '<text x="'.esc_attr($raisedMargin).'" y="'.esc_attr($rValueLevel).'" class="therm_raised" text-anchor="end" dominant-baseline="central" fill="'.esc_attr($raisedColor).'">'.esc_html($rValue).'</text>';
             }
             if ($swap == 1){
-                echo '<path d="M'.$leftM.' '.$rValueLevel.' L '.$rightM.' '.$rValueLevel.'" class="therm_subTargetLevel"/>';
+                echo '<path d="M'.esc_attr($leftM).' '.esc_attr($rValueLevel).' L '.esc_attr($rightM).' '.esc_attr($rValueLevel).'" class="therm_subTargetLevel"/>';
             }
         }
     }
@@ -520,36 +496,36 @@ function thermhtml($thermProperties){
                 $targetLevel = $minH - (($minH - $maxH) * ($t/$targetTotal));
             }
             else{
-                $targetLevel = $minH - (($minH - $maxH) * ($t/0.01));
+                $targetLevel = $minH;
             }
             if ($orientation == 'portrait'){ // horizontal markers
-                echo '<path d="M'.$leftM.' '.$targetLevel.' L '.$rightM.' '.$targetLevel.'" class="therm_subTargetLevel"/>';
+                echo '<path d="M'.esc_attr($leftM).' '.esc_attr($targetLevel).' L '.esc_attr($rightM).' '.esc_attr($targetLevel).'" class="therm_subTargetLevel"/>';
             }
             else{
-                echo '<path d="M'.$targetLevel.' '.$leftM.' L '.$targetLevel.' '.$rightM.'" class="therm_subTargetLevel"/>';
+                echo '<path d="M'.esc_attr($targetLevel).' '.esc_attr($leftM).' L '.esc_attr($targetLevel).' '.esc_attr($rightM).'" class="therm_subTargetLevel"/>';
             }
             if ($raisedTotal <= $t*0.9 or $raisedTotal >= $t*1.1 or $showRaised == 0){ // within 10% but only when not reached the subtotal
                 if ($showSubTargets == 1){
-                    $t = ($trailing == 'true') ? esc_html(number_format($t,$decimals,$decsep,$sep).$currency) : esc_html($currency.number_format($t,$decimals,$decsep,$sep));
+                    $t_formatted = ($trailing == 'true') ? esc_html(number_format($t,$decimals,$decsep,$sep).$currency) : esc_html($currency.number_format($t,$decimals,$decsep,$sep));
                     if ($orientation == 'portrait'){
                         if ( $tickM == $rightM ){
-                            echo '<path d="M '.$markerMargin.' '.$targetLevel.', '.($markerMargin+$markerSize).' '.($targetLevel-$markerSize).', '.($markerMargin+$markerSize).' '.($targetLevel+$markerSize).' Z" class="therm_subTargetArrow"/>';
+                            echo '<path d="M '.esc_attr($markerMargin).' '.esc_attr($targetLevel).', '.esc_attr($markerMargin+$markerSize).' '.esc_attr($targetLevel-$markerSize).', '.esc_attr($markerMargin+$markerSize).' '.esc_attr($targetLevel+$markerSize).' Z" class="therm_subTargetArrow"/>';
                         }
                         elseif ($tickM == $leftM){
-                            echo '<path d="M '.$markerMargin.' '.$targetLevel.', '.($markerMargin-$markerSize).' '.($targetLevel+$markerSize).', '.($markerMargin-$markerSize).' '.($targetLevel-$markerSize).' Z" class="therm_subTargetArrow" />';
+                            echo '<path d="M '.esc_attr($markerMargin).' '.esc_attr($targetLevel).', '.esc_attr($markerMargin-$markerSize).' '.esc_attr($targetLevel+$markerSize).', '.esc_attr($markerMargin-$markerSize).' '.esc_attr($targetLevel-$markerSize).' Z" class="therm_subTargetArrow" />';
                         }
 
-                        echo '<text x="'.$raisedMargin.'" y="'.$targetLevel.'" fill="'.$subTargetColor.'" class="therm_subTarget" text-anchor="'.$raisedAnchor.'" dominant-baseline="central">'.$t.'</text>';
+                        echo '<text x="'.esc_attr($raisedMargin).'" y="'.esc_attr($targetLevel).'" fill="'.esc_attr($subTargetColor).'" class="therm_subTarget" text-anchor="'.esc_attr($raisedAnchor).'" dominant-baseline="central">'.$t_formatted.'</text>';
                     }
                     elseif($orientation == 'landscape'){
                         if ( $tickM == $rightM ){
-                            echo '<path d="M '.$targetLevel.' '.$subMarkerMargin.', '.($targetLevel+$markerSize).' '.($subMarkerMargin-$markerSize).', '.($targetLevel-$markerSize).' '.($subMarkerMargin-$markerSize).' Z" class="therm_subTargetArrow"/>';
+                            echo '<path d="M '.esc_attr($targetLevel).' '.esc_attr($subMarkerMargin).', '.esc_attr($targetLevel+$markerSize).' '.esc_attr($subMarkerMargin-$markerSize).', '.esc_attr($targetLevel-$markerSize).' '.esc_attr($subMarkerMargin-$markerSize).' Z" class="therm_subTargetArrow"/>';
                         }
                         elseif ($tickM == $leftM){
-                            echo '<path d="M '.$targetLevel.' '.$subMarkerMargin.', '.($targetLevel-$markerSize).' '.($subMarkerMargin+$markerSize).', '.($targetLevel+$markerSize).' '.($subMarkerMargin+$markerSize).' Z" class="therm_subTargetArrow" />';
+                            echo '<path d="M '.esc_attr($targetLevel).' '.esc_attr($subMarkerMargin).', '.esc_attr($targetLevel-$markerSize).' '.esc_attr($subMarkerMargin+$markerSize).', '.esc_attr($targetLevel+$markerSize).' '.esc_attr($subMarkerMargin+$markerSize).' Z" class="therm_subTargetArrow" />';
                         }
 
-                        echo '<text x="'.$targetLevel.'" y="'.$subTargetMargin.'" fill="'.$subTargetColor.'" class="therm_subTarget" text-anchor="middle" dominant-baseline="central">'.$t.'</text>';
+                        echo '<text x="'.esc_attr($targetLevel).'" y="'.esc_attr($subTargetMargin).'" fill="'.esc_attr($subTargetColor).'" class="therm_subTarget" text-anchor="middle" dominant-baseline="central">'.$t_formatted.'</text>';
                     }
                 }
             }
@@ -559,16 +535,16 @@ function thermhtml($thermProperties){
 
     if($orientation == 'landscape'){
         //major
-        echo '<path d="M '.$maxH.' '.$tickM.' L '.$maxH.' '.$majorTickL.' M  '.($maxH-($tickStep)).' '.$tickM.' L '.($maxH-($tickStep)).' '.$majorTickL.' M '.($maxH-($tickStep*2)).' '.$tickM.' L '.($maxH-($tickStep*2)).' '.$majorTickL.' M'.($maxH-($tickStep*3)).' '.$tickM.' L '.($maxH-($tickStep*3)).' '.$majorTickL.' M '.($maxH-($tickStep*4)).' '.$tickM.' L '.($maxH-($tickStep*4)).' '.$majorTickL.' M '.$minH.' '.$tickM.' L '.$minH.' '.$majorTickL.'" class="therm_majorTick"/>';
+        echo '<path d="M '.esc_attr($maxH).' '.esc_attr($tickM).' L '.esc_attr($maxH).' '.esc_attr($majorTickL).' M  '.esc_attr($maxH-($tickStep)).' '.esc_attr($tickM).' L '.esc_attr($maxH-($tickStep)).' '.esc_attr($majorTickL).' M '.esc_attr($maxH-($tickStep*2)).' '.esc_attr($tickM).' L '.esc_attr($maxH-($tickStep*2)).' '.esc_attr($majorTickL).' M'.esc_attr($maxH-($tickStep*3)).' '.esc_attr($tickM).' L '.esc_attr($maxH-($tickStep*3)).' '.esc_attr($majorTickL).' M '.esc_attr($maxH-($tickStep*4)).' '.esc_attr($tickM).' L '.esc_attr($maxH-($tickStep*4)).' '.esc_attr($majorTickL).' M '.esc_attr($minH).' '.esc_attr($tickM).' L '.esc_attr($minH).' '.esc_attr($majorTickL).'" class="therm_majorTick"/>';
         //minor
-        echo '<path d="M '.($maxH-$tickStep*0.5).' '.$tickM.' L '.($maxH-$tickStep*0.5).' '.$minorTickL.' M '.($maxH-$tickStep*1.5).' '.$tickM.' L '.($maxH-$tickStep*1.5).' '.$minorTickL.' M '.($maxH-$tickStep*2.5).' '.$tickM.' L '.($maxH-$tickStep*2.5).' '.$minorTickL.' M '.($maxH-$tickStep*3.5).' '.$tickM.' L '.($maxH-$tickStep*3.5).' '.$minorTickL.' M '.($maxH-$tickStep*4.5).' '.$tickM.' L '.($maxH-$tickStep*4.5).' '.$minorTickL.'" class="therm_minorTick"/>';
+        echo '<path d="M '.esc_attr($maxH-$tickStep*0.5).' '.esc_attr($tickM).' L '.esc_attr($maxH-$tickStep*0.5).' '.esc_attr($minorTickL).' M '.esc_attr($maxH-$tickStep*1.5).' '.esc_attr($tickM).' L '.esc_attr($maxH-$tickStep*1.5).' '.esc_attr($minorTickL).' M '.esc_attr($maxH-$tickStep*2.5).' '.esc_attr($tickM).' L '.esc_attr($maxH-$tickStep*2.5).' '.esc_attr($minorTickL).' M '.esc_attr($maxH-$tickStep*3.5).' '.esc_attr($tickM).' L '.esc_attr($maxH-$tickStep*3.5).' '.esc_attr($minorTickL).' M '.esc_attr($maxH-$tickStep*4.5).' '.esc_attr($tickM).' L '.esc_attr($maxH-$tickStep*4.5).' '.esc_attr($minorTickL).'" class="therm_minorTick"/>';
     }
     else{
         //major ticks
-        echo '<path d="M '.$tickM.' '.$maxH.' L '.$majorTickL.' '.$maxH.' M '.$tickM.' '.($maxH+$tickStep).' L '.$majorTickL.' '.($maxH+$tickStep).' M'.$tickM.' '.($maxH+($tickStep*2)).' L '.$majorTickL.' '.($maxH+($tickStep*2)).' M '.$tickM.' '.($maxH+($tickStep*3)).' L '.$majorTickL.' '.($maxH+($tickStep*3)).' M '.$tickM.' '.($maxH+($tickStep*4)).' L '.$majorTickL.' '.($maxH+($tickStep*4)).' M '.$tickM.' '.$minH.' L '.$majorTickL.' '.$minH.'" class="therm_majorTick"/>';
+        echo '<path d="M '.esc_attr($tickM).' '.esc_attr($maxH).' L '.esc_attr($majorTickL).' '.esc_attr($maxH).' M '.esc_attr($tickM).' '.esc_attr($maxH+$tickStep).' L '.esc_attr($majorTickL).' '.esc_attr($maxH+$tickStep).' M'.esc_attr($tickM).' '.esc_attr($maxH+($tickStep*2)).' L '.esc_attr($majorTickL).' '.esc_attr($maxH+($tickStep*2)).' M '.esc_attr($tickM).' '.esc_attr($maxH+($tickStep*3)).' L '.esc_attr($majorTickL).' '.esc_attr($maxH+($tickStep*3)).' M '.esc_attr($tickM).' '.esc_attr($maxH+($tickStep*4)).' L '.esc_attr($majorTickL).' '.esc_attr($maxH+($tickStep*4)).' M '.esc_attr($tickM).' '.esc_attr($minH).' L '.esc_attr($majorTickL).' '.esc_attr($minH).'" class="therm_majorTick"/>';
 
         //minor ticks
-        echo '<path d="M '.$tickM.' '.($maxH+$tickStep*0.5).' L '.$minorTickL.' '.($maxH+$tickStep*0.5).' M '.$tickM.' '.($maxH+$tickStep*1.5).' L '.$minorTickL.' '.($maxH+$tickStep*1.5).' M '.$tickM.' '.($maxH+$tickStep*2.5).' L '.$minorTickL.' '.($maxH+$tickStep*2.5).' M '.$tickM.' '.($maxH+$tickStep*3.5).' L '.$minorTickL.' '.($maxH+$tickStep*3.5).' M '.$tickM.' '.($maxH+$tickStep*4.5).' L '.$minorTickL.' '.($maxH+$tickStep*4.5).'" class="therm_minorTick" />';
+        echo '<path d="M '.esc_attr($tickM).' '.esc_attr($maxH+$tickStep*0.5).' L '.esc_attr($minorTickL).' '.esc_attr($maxH+$tickStep*0.5).' M '.esc_attr($tickM).' '.esc_attr($maxH+$tickStep*1.5).' L '.esc_attr($minorTickL).' '.esc_attr($maxH+$tickStep*1.5).' M '.esc_attr($tickM).' '.esc_attr($maxH+$tickStep*2.5).' L '.esc_attr($minorTickL).' '.esc_attr($maxH+$tickStep*2.5).' M '.esc_attr($tickM).' '.esc_attr($maxH+$tickStep*3.5).' L '.esc_attr($minorTickL).' '.esc_attr($maxH+$tickStep*3.5).' M '.esc_attr($tickM).' '.esc_attr($maxH+$tickStep*4.5).' L '.esc_attr($minorTickL).' '.esc_attr($maxH+$tickStep*4.5).'" class="therm_minorTick" />';
     }
 
     // outline overlay	// title needs to be a child element to display as tooltip
@@ -576,14 +552,8 @@ function thermhtml($thermProperties){
         echo '<path d="M 280 41.5 C 280 51.5 275.5 59.5 269.5 59.5 L 54.5 59.5 C 50.5 64 43.5 66.5 37.5 66.5 C 23.5 66.5 12.5 55.5 12.5 41.5 C 12.5 27.5 23.5 16.5 37.5 16.5 C 43.5 16.5 50.5 19.5 54.5 23.5 L 269.5 23.5 C 275.5 23.5 280 31.5 280 41.5" class="therm_border"><title>'.esc_html($title).'</title></path>';
     }
     else{
-        echo '<path d="M38 25.5 C 28 25.5, 20 30, '.$leftM.' '.$maxH.' L '.$leftM.' 251 C 15.5 255, 13 262, 13 268 C 13 282, 24 293, 38 293 C 52 293, 63 282, 63 268 C 63 262, 60 255, '.$rightM.' 251 L '.$rightM.' '.$maxH.' C '.$rightM.' 30, 48 25.5, 38 25.5" class="therm_border"><title>'.esc_html($title).'</title></path>';
+        echo '<path d="M38 25.5 C 28 25.5, 20 30, '.esc_attr($leftM).' '.esc_attr($maxH).' L '.esc_attr($leftM).' 251 C 15.5 255, 13 262, 13 268 C 13 282, 24 293, 38 293 C 52 293, 63 282, 63 268 C 63 262, 60 255, '.esc_attr($rightM).' 251 L '.esc_attr($rightM).' '.esc_attr($maxH).' C '.esc_attr($rightM).' 30, 48 25.5, 38 25.5" class="therm_border"><title>'.esc_html($title).'</title></path>';
     }
-
-    //
-    /*if ($shadow == 1){
-        echo '<path d="M '.($leftM+5).' '.($maxH+2).' L '.($leftM+5).' 253 C 20.5 257, 18 264, 18 268 C 18 282, 29 288, 38 288 C 47 288, 50 285, 53 282" style="stroke-width: 6px; stroke: #ffffffad; fill:transparent;" filter="url(#blurFilter)"/>';
-        echo '<path d="M '.($leftM+5).' '.($maxH+2).' L '.($leftM+5).' 253 C 20.5 257, 18 264, 18 268 C 18 282, 29 288, 38 288 C 47 288, 50 285, 53 282" style="stroke-width: 1.5px; stroke: #f6eaea30; fill:transparent;" filter="url(#blurFilter2)"/>';
-    }*/
 
 
     // percentage
@@ -623,7 +593,7 @@ function thermhtml($thermProperties){
         }
         else{
             $legendLevel = 295;
-            echo '<text class="therm_legend" x="'.($viewboxX1+4).'" y="'.$legendLevel.'" dominant-baseline="baseline" text-anchor="left">';
+            echo '<text class="therm_legend" x="'.($viewboxX1+4).'" y="'.$legendLevel.'" dominant-baseline="baseline" text-anchor="start">';
         }
         foreach($raisedAr as $r){
             if($i > $i2){
@@ -635,7 +605,7 @@ function thermhtml($thermProperties){
                 echo '<tspan x="'.($legendLevel-10).'" dy="'.$legendStep.'" fill="'.$legendColor.'" text-anchor="end" alignment-baseline="central">'.esc_html($legendAr[$j]);
             }
             else{
-                echo '<tspan x="'.($viewboxX1+4).'" dy="'.$legendStep.'" fill="'.$legendColor.'" text-anchor="left" alignment-baseline="central">'.esc_html($legendAr[$j]);
+                echo '<tspan x="'.($viewboxX1+4).'" dy="'.$legendStep.'" fill="'.$legendColor.'" text-anchor="start" alignment-baseline="central">'.esc_html($legendAr[$j]);
             }
             if (count($raisedA) >= 1){
                 echo ($trailing == 'true') ? esc_html(' ('.trim(number_format($r,$decimals,$decsep,$sep)).$currency.')') : esc_html(' ('.$currency.trim(number_format($r,$decimals,$decsep,$sep))).')</tspan>';
