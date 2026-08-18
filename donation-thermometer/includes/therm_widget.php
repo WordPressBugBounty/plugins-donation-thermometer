@@ -1,8 +1,4 @@
 <?php
-/**
- * This file could be used to catch submitted form data. When using a non-configuration
- * view to save form data, remember to use some kind of identifying field in your form.
- */
 
 if(self::get_thermometer_widget_option('thousands') == ' (space)'){
     $sep = ' ';
@@ -15,21 +11,35 @@ else{
 }
 $decsep = (self::get_thermometer_widget_option('decsep') == ', (comma)') ? ',' : '.';
 $decimals = intval(self::get_thermometer_widget_option('decimals'));
-$raisedA = explode(';',self::get_thermometer_widget_option('raised_string'));
+
+$raised_str = (string)(self::get_thermometer_widget_option('raised_string') ?? '');
+$raisedA = explode(';', $raised_str);
+
 if ($decsep == ','){
     foreach($raisedA as &$item) {
         $item = floatval(str_replace(',', '.', str_replace('.', '', strval($item))));
     }
+    unset($item);
+} else {
+    $raisedA = array_map('floatval', $raisedA);
 }
+
 $raised = array_sum($raisedA);
-$targetA = explode(';',self::get_thermometer_widget_option('target_string'));
+
+$target_str = (string)(self::get_thermometer_widget_option('target_string') ?? '');
+$targetA = explode(';', $target_str);
+
 if ($decsep == ','){
     foreach($targetA as &$item) {
         $item = floatval(str_replace(',', '.', str_replace('.', '', strval($item))));
     }
+    unset($item); 
+} else {
+    $targetA = array_map('floatval', $targetA);
 }
 
 $target = floatval(end($targetA));
+
 $currency = self::get_thermometer_widget_option('currency');
 $trailing = self::get_thermometer_widget_option('trailing');
 
