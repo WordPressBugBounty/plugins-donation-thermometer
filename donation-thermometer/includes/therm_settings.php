@@ -227,11 +227,11 @@ function  setting_dropdown_fn($options) {
 
 function  setting_thousands_fn($options) {
     $value = (isset(get_option('thermometer_options')[$options['type']])) ? esc_html(get_option('thermometer_options')[$options['type']]) : $options['default'];
-    $sep = substr(sanitize_text_field($value),0,1);
-    $items = array(", (".__('comma', 'donation-thermometer').")",". (".__('point', 'donation-thermometer').")"," (".__('space', 'donation-thermometer').")","(".__('none', 'donation-thermometer').")");
+    $value = sanitize_text_field($value);
+    $items = array(", (".__('comma', 'donation-thermometer').")",". (".__('point', 'donation-thermometer').")","(".__('space', 'donation-thermometer').")","(".__('none', 'donation-thermometer').")");
     echo '<select id="'.$options['type'].'" name="thermometer_options['.$options['type'].']">';
     foreach($items as $item) {
-        $selected = (substr($item,0,1)==$sep) ? 'selected="selected"' : '';
+        $selected = ($item==$value) ? 'selected="selected"' : '';
         echo "<option value='".$item."' ".$selected.">$item</option>";
     }
     echo "</select>";

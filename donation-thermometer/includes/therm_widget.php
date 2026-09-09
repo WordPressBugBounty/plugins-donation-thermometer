@@ -1,6 +1,6 @@
 <?php
 
-if(self::get_thermometer_widget_option('thousands') == ' (space)'){
+if(self::get_thermometer_widget_option('thousands') == '(space)'){
     $sep = ' ';
 }
 elseif(self::get_thermometer_widget_option('thousands') == '(none)'){

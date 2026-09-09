@@ -100,7 +100,7 @@ function thermometer_graphic($atts){
     if (!empty($atts['sep'])) {
         $thermProperties['sep'] = sanitize_text_field($atts['sep']);
     } else {
-        if ($options['thousands'] === ' (space)') {
+        if ($options['thousands'] === '(space)') {
             $thermProperties['sep'] = ' ';
         } elseif ($options['thousands'] === '(none)') {
             $thermProperties['sep'] = '';
@@ -156,7 +156,7 @@ function therm_raised() {
     
     $decsep   = ($options['decsep'] === ', (comma)') ? ',' : '.';
     $decimals = absint($options['decimals']);
-    $sep      = ($options['thousands'] === ' (space)') ? ' ' : (($options['thousands'] === '(none)') ? '' : substr($options['thousands'], 0, 1));
+    $sep      = ($options['thousands'] === '(space)') ? ' ' : (($options['thousands'] === '(none)') ? '' : substr($options['thousands'], 0, 1));
     
     $raised = get_clean_thermometer_value($options['raised_string'], $decsep);
     
@@ -173,7 +173,7 @@ function therm_target() {
     
     $decsep   = ($options['decsep'] === ', (comma)') ? ',' : '.';
     $decimals = absint($options['decimals']);
-    $sep      = ($options['thousands'] === ' (space)') ? ' ' : (($options['thousands'] === '(none)') ? '' : substr($options['thousands'], 0, 1));
+    $sep      = ($options['thousands'] === '(space)') ? ' ' : (($options['thousands'] === '(none)') ? '' : substr($options['thousands'], 0, 1));
     
     $target = get_clean_thermometer_value($options['target_string'], $decsep);
     

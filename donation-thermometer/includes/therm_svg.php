@@ -31,7 +31,7 @@ function thermhtml($thermProperties){
 
 
     $decsep      = sanitize_text_field($thermProperties['decsep']);
-    $sep         = sanitize_text_field($thermProperties['sep']);
+    $sep         = ($thermProperties['sep'] === ' ') ? ' ' : sanitize_text_field($thermProperties['sep']);
     $orientation = (sanitize_key($thermProperties['orientation']) === 'landscape') ? 'landscape' : 'portrait';
     $width_tp    = sanitize_text_field($thermProperties['width']);
     $height_tp   = sanitize_text_field($thermProperties['height']);
