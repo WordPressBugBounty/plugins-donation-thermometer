@@ -22,10 +22,16 @@ var $jq = jQuery.noConflict();
   
 function rampColors(){
 	var colors = $jq('#color_ramp').val().split(';');
-	$jq('#rampPreview').html('<p>Preview:</p>');
+  var preview = $jq('#rampPreview').empty();
+  preview.append($jq('<p>').text('Preview:'));
 	$jq.each(colors, function(i, val) {
-		if (val != null && val.trim() != ''){
-			$jq('#rampPreview').append('<svg width="30" height="50"><rect width="30" height="50" style="fill:'+val.trim()+';stroke-width:0.2;stroke:rgb(0,0,0)" /></svg>');
+    var color = val == null ? '' : val.trim();
+    if (/^#(?:[a-f0-9]{3}|[a-f0-9]{6})$/i.test(color)){
+      var svg = $jq('<svg>', { width: 30, height: 50 });
+      var rect = $jq('<rect>', { width: 30, height: 50 });
+      rect.css({ fill: color, 'stroke-width': 0.2, stroke: 'rgb(0,0,0)' });
+      svg.append(rect);
+      preview.append(svg);
 		}
 	})
 }

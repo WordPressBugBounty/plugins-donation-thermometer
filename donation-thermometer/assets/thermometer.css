@@ -1,0 +1,54 @@
+/* Donation Thermometer front-end styles. */
+
+.thermometer-container {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    max-width: var(--wp--style--global--content-size, 100%);
+    margin-bottom: 1.5em;
+}
+
+.thermometer-wrap {
+    box-sizing: border-box;
+    display: block;
+}
+
+.thermometer-wrap.therm-align-left {
+    float: left;
+    margin: 0 1.5em 1em 0;
+}
+
+.thermometer-wrap.therm-align-center {
+    float: none;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+.thermometer-wrap.therm-align-right {
+    float: right;
+    margin: 0 0 1em 1.5em;
+}
+
+.thermometer-wrap .thermometer_svg {
+    display: block;
+    max-width: 100%;
+}
+
+.is-layout-constrained > .thermometer-container {
+    max-width: var(--wp--style--global--content-size, 100%) !important;
+}
+
+.thermometer-wrap.therm-align-left {
+    margin-left: 0 !important;
+    margin-right: auto !important;
+}
+
+.thermometer-wrap.therm-align-center {
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+.thermometer-wrap.therm-align-right {
+    margin-left: auto !important;
+    margin-right: 0 !important;
+}

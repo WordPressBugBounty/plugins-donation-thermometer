@@ -3,7 +3,7 @@
 Plugin Name: Donation Thermometer
 Plugin URI: https://rhewlif.xyz/thermometer
 Description: Displays customisable thermometers for tracking donations using the shortcode <code>[thermometer raised=?? target=??]</code>. Shortcodes for raised/target/percentage text values are also available for posts/pages/text widgets: <code>[therm_r]</code> / <code>[therm_t]</code> / <code>[therm_%]</code>.
-Version: 2.2.11
+Version: 2.3.0
 Author: Henry Patton
 Text Domain: donation-thermometer
 Author URI: https://rhewlif.xyz
@@ -105,6 +105,46 @@ function get_donation_thermometer_style_defaults() {
     );
 }
 
+function donation_thermometer_enqueue_assets() {
+    if ( is_admin() ) {
+        return;
+    }
+
+    wp_register_style(
+        'donation-thermometer',
+        plugin_dir_url( __FILE__ ) . 'assets/thermometer.css',
+        array(),
+        '2.2.11'
+    );
+
+    wp_enqueue_style( 'donation-thermometer' );
+
+    $defaults = get_donation_thermometer_style_defaults();
+    $options  = wp_parse_args(
+        get_option( 'thermometer_style', array() ),
+        $defaults
+    );
+
+    $css = '.thermometer_svg{' . safecss_filter_attr( $options['thermometer_svg'] ?? '' ) . '}';
+    $css .= '.therm_target{' . safecss_filter_attr( $options['therm_target_style'] ?? '' ) . '}';
+    $css .= '.therm_raised{' . safecss_filter_attr( $options['therm_raised_style'] ?? '' ) . '}';
+    $css .= '.therm_percent{' . safecss_filter_attr( $options['therm_percent_style'] ?? '' ) . '}';
+    $css .= '.therm_subTarget{' . safecss_filter_attr( $options['therm_subTarget_style'] ?? '' ) . '}';
+    $css .= '.therm_legend{' . safecss_filter_attr( $options['therm_legend_style'] ?? '' ) . '}';
+    $css .= '.therm_majorTick{' . safecss_filter_attr( $options['therm_majorTick_style'] ?? '' ) . '}';
+    $css .= '.therm_minorTick{' . safecss_filter_attr( $options['therm_minorTick_style'] ?? '' ) . '}';
+    $css .= '.therm_border{' . safecss_filter_attr( $options['therm_border_style'] ?? '' ) . '}';
+    $css .= '.therm_fill{' . safecss_filter_attr( $options['therm_fill_style'] ?? '' ) . '}';
+    $css .= '.therm_subTargetArrow{' . safecss_filter_attr( $options['therm_subArrow_style'] ?? '' ) . '}';
+    $css .= '.therm_raisedLevel{' . safecss_filter_attr( $options['therm_raisedLevel_style'] ?? '' ) . '}';
+    $css .= '.therm_subRaisedLevel{' . safecss_filter_attr( $options['therm_subRaisedLevel_style'] ?? '' ) . '}';
+    $css .= '.therm_arrow{' . safecss_filter_attr( $options['therm_arrow_style'] ?? '' ) . '}';
+    $css .= '.therm_subTargetLevel{' . safecss_filter_attr( $options['therm_subTargetLevel_style'] ?? '' ) . '}';
+
+    wp_add_inline_style( 'donation-thermometer', $css );
+}
+
+add_action( 'wp_enqueue_scripts', 'donation_thermometer_enqueue_assets' );
 
 function set_plugin_meta_dt($links, $file) {
     $plugin = plugin_basename(__FILE__);
@@ -167,19 +207,17 @@ function thermometer_init_fn(){
 
 // Add sub-page to the Settings Menu
 function thermometer_add_page_fn() {
-    $page = add_options_page(__('Thermometer settings','donation-thermometer'), __('Thermometer', 'donation-thermometer'), 'administrator', 'thermometer-settings', 'options_page_fn');
+    $page = add_options_page(__('Thermometer settings','donation-thermometer'), __('Thermometer', 'donation-thermometer'), 'manage_options', 'thermometer-settings', 'options_page_fn');
     add_action( 'admin_print_styles-' . $page, 'my_admin_scripts' );
 }
 
 function thermometer_help_init() {
     add_settings_section('therm_help_section','','help_section_text_fn','thermometer-help');
 }
-add_action( 'admin_init', 'thermometer_help_init' );
+
 function thermometer_preview_init() {
     add_settings_section('therm_preview_section','','preview_section_text_fn','thermometer-preview');
 }
-add_action( 'admin_init', 'thermometer_preview_init' );
-
 
 function thermometer_style_init() {
     $thermDefaultStyle = get_donation_thermometer_style_defaults();
@@ -188,7 +226,8 @@ function thermometer_style_init() {
         add_option( 'thermometer_style' );
     }
     add_settings_section('therm_style_section',__('Default CSS values','donation-thermometer'),'style_section_text_fn','thermometer_style');
-    register_setting('thermometer_style', 'thermometer_style', 'thermometer_style_validate' );    add_settings_field('thermometer_svg', __('SVG image','donation-thermometer').' <code>class="thermometer_svg"</code>', 'svg_style_fn', 'thermometer_style', 'therm_style_section', array( 'default' => $thermDefaultStyle['thermometer_svg'], 'type' => 'thermometer_svg'));
+    register_setting('thermometer_style', 'thermometer_style', 'thermometer_style_validate' );    
+    add_settings_field('thermometer_svg', __('SVG image','donation-thermometer').' <code>class="thermometer_svg"</code>', 'svg_style_fn', 'thermometer_style', 'therm_style_section', array( 'default' => $thermDefaultStyle['thermometer_svg'], 'type' => 'thermometer_svg'));
     add_settings_field('therm_target_style', __('Target value','donation-thermometer').' <code>class="therm_target"</code>', 'target_style_fn', 'thermometer_style', 'therm_style_section', array( 'default' => $thermDefaultStyle['therm_target_style'], 'type' => 'therm_target_style'));
     add_settings_field('therm_raised_style', __('Raised value','donation-thermometer').' <code>class="therm_raised"</code>', 'raised_style_fn', 'thermometer_style', 'therm_style_section', array( 'default' => $thermDefaultStyle['therm_raised_style'], 'type' => 'therm_raised_style'));
     add_settings_field('therm_percent_style', __('Percent value','donation-thermometer').' <code>class="therm_percent"</code>', 'percent_style_fn', 'thermometer_style', 'therm_style_section', array( 'default' => $thermDefaultStyle['therm_percent_style'], 'type' => 'therm_percent_style'));
@@ -204,7 +243,6 @@ function thermometer_style_init() {
     add_settings_field('therm_majorTick_style', __('Major ticks','donation-thermometer').' <code>class="therm_majorTick"</code>', 'majorTick_style_fn', 'thermometer_style', 'therm_style_section', array( 'default' => $thermDefaultStyle['therm_majorTick_style'], 'type' => 'therm_majorTick_style'));
     add_settings_field('therm_minorTick_style', __('Minor ticks','donation-thermometer').' <code>class="therm_minorTick"</code>', 'minorTick_style_fn', 'thermometer_style', 'therm_style_section', array( 'default' => $thermDefaultStyle['therm_minorTick_style'], 'type' => 'therm_minorTick_style'));
 }
-add_action( 'admin_init', 'thermometer_style_init' );
 
 
 // Define default option settings when activate
@@ -260,9 +298,6 @@ function thermometer_style_handle_reset() {
         exit;
     }
 }
-
-add_action('admin_init', 'thermometer_style_handle_reset');
-
 
 // Display the admin options page
 function options_page_fn() {
@@ -351,6 +386,17 @@ function thermometer_options_validate($input) {
                     $output[$key] = $thermDefaults[$key];
                 }
             }
+            elseif ( $key === 'color_ramp' ){
+                $ramp = array();
+                if ( trim( (string) $value, "; \t\n\r" ) === '' ){
+                    $output[$key] = $thermDefaults['color_ramp'];
+                    continue;
+                }
+                foreach ( explode( ';', rtrim( (string) $value, "; \t\n\r" ) ) as $ramp_color ){
+                    $ramp[] = sanitize_hex_color( trim( $ramp_color ) ) ?: '#000000';
+                }
+                $output[$key] = implode( '; ', $ramp );
+            }
             else{
                 $output[$key] = sanitize_text_field( $value );
             }
@@ -364,14 +410,40 @@ function thermometer_options_validate($input) {
     return apply_filters( 'thermometer_options_validate', $output, $input );
 }
 
-function thermometer_style_validate($input) {
-    $output = array();
-    foreach( $input as $key => $value ) {
-        // Allow pure inline CSS blocks but sanitize the raw text footprint
-        $output[$key] = sanitize_textarea_field( $value );
+function thermometer_style_validate( $input ) {
+    $defaults = get_donation_thermometer_style_defaults();
+    $input    = is_array( $input ) ? $input : array();
+    $output   = array();
+
+    $css_fields = array(
+        'thermometer_svg',
+        'therm_target_style',
+        'therm_raised_style',
+        'therm_percent_style',
+        'therm_subTarget_style',
+        'therm_legend_style',
+        'therm_majorTick_style',
+        'therm_minorTick_style',
+        'therm_border_style',
+        'therm_fill_style',
+        'therm_subArrow_style',
+        'therm_raisedLevel_style',
+        'therm_subRaisedLevel_style',
+        'therm_arrow_style',
+        'therm_subTargetLevel_style',
+    );
+
+    foreach ( $css_fields as $field ) {
+        $value = $input[ $field ] ?? $defaults[ $field ] ?? '';
+
+        $output[ $field ] = safecss_filter_attr(
+            wp_unslash( (string) $value )
+        );
     }
+
     return $output;
 }
+
 
 /* Display a notice that can be dismissed */
 

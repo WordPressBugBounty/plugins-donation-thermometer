@@ -2,7 +2,7 @@
 // Section HTML, displayed before the first option
 
 function style_section_text_fn() {
-    echo '<p>'.__('These are the default CSS settings and associated classes for all thermometers on the site.','donation-thermometer').'</p>';
+    echo '<p>'.__('These are the default CSS settings and associated classes for all thermometers on the site. Enter CSS declarations only. Do not include selectors, curly braces, or style tags.','donation-thermometer').'</p>';
     echo '<p>';
     $fillProperty = '<i>fill</i>';
     $fillExample = 'fill: #32373c;';
@@ -341,7 +341,7 @@ function setting_chk4_fn($options) {
 
 // TEXTBOX - Name: plugin_options[subtarget_colour]
 function subtarget_colour_fn($options) {
-    $value = (isset(get_option('thermometer_options')[$options['type']])) ? (get_option('thermometer_options')[$options['type']]) : $options['default'];
+    $value = (isset(get_option('thermometer_options')[$options['type']])) ? esc_attr(get_option('thermometer_options')[$options['type']]) : $options['default'];
     echo "<div class='form-item'>";
     echo '<input id="'.$options['type'].'" type="text" name="thermometer_options['.$options['type'].']" value="'.sanitize_text_field($value).'" class="colorwell"/>';
     echo " (<code>subtargetcolor=#8a8a8a</code>)";

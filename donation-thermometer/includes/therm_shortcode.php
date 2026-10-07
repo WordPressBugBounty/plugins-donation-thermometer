@@ -4,9 +4,8 @@ defined('ABSPATH') or die('Access denied');
 /////////////////////////////// shortcode stuff...
 
 function is_hex_color($color) {
-    $color = trim($color);
-    // Regex: ^# followed by exactly 3 or 6 hex digits
-    return (bool) preg_match('/^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$/', $color);
+    // \z (not $) so a trailing newline is rejected
+    return (bool) preg_match('/^#(?:[A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})\z/', (string) $color);
 }
 function thermometer_graphic($atts){
     $thermDefaults = get_donation_thermometer_defaults();
@@ -73,7 +72,7 @@ function thermometer_graphic($atts){
 
     // Currency Formatting Contexts
     $thermProperties['currency'] = (strtolower($atts['currency']) === 'null') ? '' : sanitize_text_field($atts['currency']);
-    $thermProperties['decsep']   = sanitize_text_field($atts['decsep']);
+    $thermProperties['decsep']   = ($atts['decsep'] === ',') ? ',' : '.';
     $sep                         = $thermProperties['decsep'];
 
     // Data Targets Evaluation
@@ -89,11 +88,14 @@ function thermometer_graphic($atts){
     $thermProperties['swapValues']   = ($atts['swapvalues'] === 'true' || $atts['swapvalues'] === '1') ? 1 : 0;
 
     // Element Alignment Layout Rules
-    $align = strtolower($atts['align']);
-    if ($align === 'center' || $align === 'centre') {
-        $thermProperties['align'] = 'display:block; margin-left:auto; margin-right:auto;';
+    $align = strtolower( (string) ( $atts['align'] ?? '' ) );
+
+    if ( in_array( $align, array( 'center', 'centre' ), true ) ) {
+        $thermProperties['align'] = 'center';
+    } elseif ( in_array( $align, array( 'left', 'right' ), true ) ) {
+        $thermProperties['align'] = $align;
     } else {
-        $thermProperties['align'] = 'display:block; float:' . sanitize_key($align) . ';';
+        $thermProperties['align'] = 'left'; // Or your preferred default.
     }
 
     // Thousands Separator Rule
@@ -109,11 +111,18 @@ function thermometer_graphic($atts){
         }
     }
 
-    $thermProperties['decimals']  = absint($atts['decimals']);
+    $thermProperties['decimals']  = min(10, absint($atts['decimals']));
     $thermProperties['title']     = sanitize_text_field($atts['alt']);
     $thermProperties['legend']    = sanitize_text_field($atts['legend']);
     $thermProperties['ticks']     = sanitize_text_field($atts['ticks']);
-    $thermProperties['colorList'] = sanitize_text_field($atts['colorramp']);
+    // Only hex colours survive; anything else becomes black so the list keeps its positions.
+    $ramp = array();
+    if (trim((string) $atts['colorramp'], "; \t\n\r") !== '') {
+        foreach (explode(';', rtrim((string) $atts['colorramp'], "; \t\n\r")) as $ramp_color) {
+            $ramp[] = sanitize_hex_color(trim($ramp_color)) ?: '#000000';
+        }
+    }
+    $thermProperties['colorList'] = implode(';', $ramp);
     $thermProperties['trailing']  = ($atts['trailing'] === 'true' || $atts['trailing'] === 'on') ? 'true' : 'false';
 
     // Enforce Safe Color Definitions

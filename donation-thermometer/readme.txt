@@ -2,10 +2,10 @@
 Contributors: henryp
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8NVX34E692T34
 Tags: donate, donation, thermometer, tracker, fundraising
-Requires at least: 4.6
-Tested up to: 7.1
-Stable tag: 2.2.11
-Requires PHP: 5.2
+Requires at least: 5.0.3
+Tested up to: 7.1.3
+Stable tag: 2.3.0
+Requires PHP: 7.0
 License: GPL3
 
 Displays a fully customisable thermometer for tracking donations or any other goal.
@@ -79,6 +79,12 @@ There are two options for filling the thermometer: with a uniform colour (the de
 4. The help page describing the various shortcode options and functionality.
 
 == Changelog ==
+
+= 2.3.0 =
+* Modified left and right alignment CSS to better correspond with the main text body on posts and pages.
+* Fixed potential clipping of large target values within the svg viewbox. 
+* Security fixes (thanks to Philipp Doblhofer for the disclosure).
+* Other minor bugs and inconsistencies fixed.
 
 = 2.2.11 =
 * Fix for proper display of thousands separator using space.
